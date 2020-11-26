@@ -25,7 +25,7 @@
     2640 px=px-pv
     2650 swap p(2),p(3):ps=p(3)
 2660 return
-    2700 if point(px,py)=15 then beep: ps=p(4)
+    2700 if point(px,py-16)=8 then beep: ps=p(4)
 2750 return
     2800 'nada'
 2850 return

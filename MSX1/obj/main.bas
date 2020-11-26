@@ -72,7 +72,7 @@
     1 '2572 if px mod 2=0  then ps=ps+1
 2660 return
 1 '1 Arriba'
-    2700 if point(px,py)=15 then beep: ps=p(4)
+    2700 if point(px,py-16)=8 then beep: ps=p(4)
 2750 return
 1 '5 abajo'
     2800 'nada'
