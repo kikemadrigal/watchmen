@@ -1,1 +1,0 @@
-10 load"main.bas",r

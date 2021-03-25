@@ -1,1 +1,0 @@
-@DISKMGR /R

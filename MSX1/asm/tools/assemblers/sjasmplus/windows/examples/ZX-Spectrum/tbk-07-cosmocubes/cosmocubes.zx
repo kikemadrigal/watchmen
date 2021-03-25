@@ -1,0 +1,296 @@
+//COSMOCUBES 1K-tro by psndcj//tbk
+//special for Forever8
+//15-17.03.07
+
+
+	DEVICE ZXSPECTRUM128
+
+///////////////////////////////////////////////////переменные
+MAIN 	equ #8000	//основной код
+
+gfxout	equ #9000	//раскранченная выкидка графики
+
+imtab   EQU #BC00	//[#0101]
+inter   EQU #BDBD	//[#0041]
+//таблица и обработчик прерываний
+
+atr_buf_new		equ #bE00				// [#0100] буфер выводимых атрибутов 12х17
+ay_data 		equ atr_buf_new+#100	//данные регистров
+
+canvas 	equ #c000	//[#3F00] сгенерированные данные для фона
+
+screen 	equ #c000	//адрес экрана
+
+
+
+                   org MAIN
+//////////////////////////////////////////////////инсталляция
+install
+//	call generate_gfxout
+generate_gfxout ;генерация кода выкидки
+	ld hl,gfxout,b,l,lx,3
+generate_gfxout1
+	ld a,4
+	ld (hl),#f9:inc hl				//ld sp,hl
+generate_gfxout2
+	ld de,hl:inc de
+	ld (hl),#f5,c,16:ldir			//push af x16
+	ld (hl),#d5,c,16:ldir			//push de x16
+	dec a:jr nz,generate_gfxout2
+	ld (hl),#08:inc hl				//exa
+	ld (hl),#09:inc hl				//add hl,bc
+	ld (hl),#08:inc hl				//exa
+	dec lx:jr nz,generate_gfxout1
+	ld (hl),#fd:inc hl:ld (hl),#e9	//jp (iy)
+//	ret	
+	
+//	call interrupts_init
+interrupts_init  ;подготовка обработки прерываний
+	LD HL,inter,(HL),#C3;jp
+	INC L:LD (HL),low obrab
+	INC L:LD (HL),high obrab
+	LD A,H,L,0,(HL),A:DEC H
+	LD (HL),A:DEC L:JR NZ,$-2
+	LD A,H,I,A:IM 2
+//	RET
+
+
+	ld hl,atr_buf_new,bc,#4200:call fill_l	//очищаем сразу все буферы
+	ld hl,ay_data+11,(hl),#78:inc hl,hl:ld (hl),#0c	//форма и частота огибающей постоянны
+
+	call setbank0:call data_gen
+		
+				
+//демо-цикл
+loop	ei:halt
+		call scrswap
+		call output
+		call rollatr
+		call setbank0
+		call roller
+		jr loop
+
+
+/////////////////////////////////////////////////процедуры
+roller	//сдвиг атрибутов
+	ld a,(rollatr+1):inc a:bit 0,a:jr nz,roller1
+	ld hl,atrbuf_v,a,(hl):add a,12:ld (hl),a
+	add a,12*16:inc hl:ld d,(hl),e,a
+	ld b,12
+
+action2 ld hl,canvas
+	ld a,h:cp #ff:jr nz,action2_1
+			ld hl,canvas+2772+60*12	//зацикленный задник
+action2_1 ld a,(hl),(de),a:inc hl,e:djnz action2_1
+	ld (action2+1),hl
+		xor a
+roller1	ld (rollatr+1),a:ret
+
+	
+	
+rollatr	//вывод атрибутов
+	ld a,0
+	ld bc,#20,l,b,de,atr_buf_new
+atrbuf_v equ $-2
+rollatr1 
+	exa
+	ld h,high (screen+#1800),lx,12
+rollatr2
+		dup 12
+	ld a,(de):inc e
+	ld (hl),a:add hl,bc
+	ld (hl),a:add hl,bc
+		edup
+	ld a,e:sub 12:ld e,a
+	inc l:ld a,l:cp #20:ret z
+	exa:inc a:and 1:jr nz,rollatr1
+	exa
+	ld a,12:add a,e:ld e,a
+	jp rollatr1	
+	
+
+
+output	//вывод графики - заполнение всего экрана кубиками
+	ld (output_e+1),sp
+	ld lx,8
+	ld hl,screen+#1800:exx
+spr_adr_modif ld hl,sprite
+	ld a,(hl):cp #ff:jr nz,$+2+3:ld hl,sprite
+	ld iy,output_bp
+output1
+	ld sp,hl:exx
+	pop af,de
+	ld bc,-#0800
+	jp gfxout
+output_bp
+	ld bc,#1700:add hl,bc
+	exx:ld de,4:add hl,de
+	dec lx:jr nz,output1
+	ld (spr_adr_modif+1),hl
+output_e ld sp,0:ret
+
+	
+	
+////////////////////////////////////////////////easy routine
+//заполнение массива
+fill_l 	ld (hl),l
+fill 	LD DE,HL:INC DE:LDIR:RET
+
+	
+scrswap ld a,(bankscr+1):xor #0a:ld (bankscr+1),a
+bankscr ld a,#17,bc,#7ffd:out (c),a:ret
+setbank0 ld a,(bankscr+1):and #f8:jr bankscr+2	
+
+
+
+///////////////////////////////////////////////прерывания
+//играем музыку 
+obrab
+	PUSH AF,BC,HL,DE
+		
+	ld de,ay_data+2
+mus1	ld hl,pattern1
+	ld a,(hl):and a:jr nz,$+2+3:ld hl,pattern1
+	sla a:ld (de),a:inc hl
+	ld a,0:rla:inc de:ld (de),a
+	ld a,(hl):and #10:ld B,a
+	ld a,(hl):and #0f:ld (ay_data+9),a
+	inc hl
+	ld (mus1+1),hl
+
+timer ld a,156:dec a:jr nz,notimer
+// пришло время для ударника
+	ld a,#21,(mus2),a
+	ld hl,pattern2,(mus2+1),hl
+timer_order ld hl,sound
+	ld a,(hl):and a:jr nz,timer1
+		ld hl,soundloop-1	
+timer1 ld a,(hl):inc hl:ld (timer_order+1),hl
+notimer ld (timer+1),a
+		call mus2
+
+	ld a,b,(ay_data+7),a
+	
+	ld hl,ay_data+13,d,l,c,#fd
+musout	ld b,#ff:out (c),d
+		ld b,#bf:outd
+		dec d:jp p,musout
+	
+	xor a:out (#fe),a
+
+	POP DE,HL,BC,AF
+	ei:ret
+
+
+
+mus2 ld hl,pattern2
+	ld a,(hl):and a:jr nz,mus2_1
+	ld a,#c9,(mus2),a
+	xor a
+rout_volume_ac
+	ld e,8,(de),a:inc e,e:ld (de),a
+	ret
+		
+mus2_1	//play sample
+	ld c,0,e,c
+		dup 4
+		add a,a:rl c
+		edup
+	ld (de),a,e,4,(de),a
+	ld a,c
+	inc e:ld (de),a,e,1,(de),a	
+		inc hl
+	
+		
+	ld a,(hl):and #0f:inc a:call rout_volume_ac
+	ld c,(hl):xor a
+	rl c:jr nc,$+2+2:or #28
+	rl c:jr nc,$+2+2:or #5
+	or b:ld b,a
+	inc hl
+mus2_2 ld (mus2+1),hl
+		ret
+
+
+	
+/////////////////////////////////////////////////данные
+
+data_gen //генерим фон для супер-скролла
+//одинокие кубики
+	ld de,alone_data
+alon1
+	ld a,(de),l,a:inc de
+	ld a,(de),h,a:inc de
+	call yep
+	ld a,h:or l:jr nz,alon1
+
+//стаи кубов
+	ld hl,canvas+2772
+	ld e,#30
+datagen5 
+	ld c,30
+//	call datagen1
+datagen1 //генерим кубики с вероятностью E в C рядах
+	ld b,12
+datagen1_1
+	call rnd:cp e:jr nc,datagen1_2
+	call yep
+	
+datagen1_2
+	inc hl:ld a,h:cp #ff:ret z
+	djnz datagen1_1
+	dec c:jr nz,datagen1
+//	ret
+	ld a,e:cp #f0:jr nz,$+2+2:ld a,#f0-#80
+	add a,#40:ld e,a
+	jr datagen5
+	
+
+
+
+yep //рисуем кубик произвольного цвета
+	call rnd
+	and #7:jr z,yep
+	add a,#40:ld (hl),a
+	ret
+	
+	
+
+rnd			//получаем случайное число
+			exx
+rnd_modif ld hl,1000,a,(hl):inc hl:res 3,h
+		  ld (rnd_modif+1),hl:exx:ret
+
+////////////////////////////////////////////////////данные
+pattern1	//сольник, играемый в средний канал
+//+0(1) высота тона, деленная на 2; 0 - конец сэмпла, зацикливание на начало
+//+1(1) %aaaabbbb, aaaa0000 - управляющий байт, 0000bbbb - громкость 
+ db #42,#B,#85,#9,#85,#17,#85,#15,#85,#15,#85,#15,#77,#F,#EF,#D,#EF,#1B,#EF,#17,#EF,#17,#EF,#17
+ db #42,#F,#85,#D,#85,#1B,#85,#17,#85,#17,#85,#17,#77,#B,#EF,#9,#EF,#17,#EF,#15,#EF,#15,#EF,#15
+ db #27,#F,#4F,#D,#4F,#1B,#4F,#17,#4F,#17,#4F,#17,#3B,#F,#77,#D,#77,#1B,#77,#17,#77,#17,#77,#17
+ db #27,#B,#4F,#9,#4F,#17,#4F,#15,#4F,#15,#4F,#15,#3B,#B,#77,#9,#77,#17,#77,#15,#77,#15,#77,#15
+ db 0
+
+pattern2	//ударник, играется в оба крайних канала
+// +0(1) высота тона, деленная н 4 
+// +1(1) %ab00cccc, управление a(or #28) b(or #5), 0000cccc+1 - громкость
+ db #25,#8E,#31,#8E,#3F,#8E,#1D,#CF,#1D,#CF,#1D,#CF,#1D,#4E,#1D,#4D,#1D,#4A,#1D,#CF,#1D,#CF,#1D,#CF
+ db 0
+
+sound //ударные такты - типа сама мелодия
+ db 132,48,48,24,24,12,12,6,6,3,3,6
+soundloop
+ db 12,12,12,12,12,12,12,6,3,3
+ db 0
+		  
+sprite	//выводимый спрайт
+	incbin "cubes_gfx.bin"
+	db #ff	//конец графики
+
+alone_data	//адреса одиноких кубиков
+ dw canvas+6,canvas+936+2,canvas+1728+8,canvas+2016+5,canvas+2304+3,canvas+2448+9,canvas+2592+5,canvas+2664+8,canvas+2736+1
+ dw #0000
+
+ 
+/////////////////////////////////////////////////save snapshot 
+	SAVESNA "cosm1ocubes.sna",MAIN

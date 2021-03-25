@@ -1,0 +1,49 @@
+;Creater mono loader
+;nikphe^ANY 2oo1
+;remixed for SjASMPlus by Aprisobal 2006
+
+	DEVICE ZXSPECTRUM128
+
+	MODULE MonoLoader
+	ORG 16384 ;чтобы не забивала память, если захотите использовать прямо в программе
+	DISP 23867
+	
+Basic	DW #100,EndBasic-Begin
+Begin	DW #30FD,#E,#B300,#5F,#F93A,#30C0,#E,#5300,#5D,#EA3A
+
+	DI
+
+	;очистка экрана
+	XOR A
+	OUT (-2),A
+	LD HL,#5AFF
+	LD (HL),A
+	OR (HL)
+	DEC HL
+	JR Z,$-3
+
+	LD HL,#C000-1 ;адрес загрузки
+	LD B,4 ;количество секторов
+	CALL Load
+
+	JP #C000-1 ;старт вашей программы
+
+Load	LD DE,(#5CF4)
+	LD C,#05
+	JP #3D13
+
+	DB #D
+EndBasic	
+	ENT
+	
+	EMPTYTRD "Worm255.trd"
+	SAVETRD "Worm255.trd","worm255.B",16384,EndBasic-Basic
+	
+	DISPLAY "Monoloader saved!"
+	ENDMODULE
+
+Worm255
+	INCBIN "worm255.out"
+	SAVETRD "worm255.trd","worm255.C",Worm255,$-Worm255
+	DISPLAY "Worm255 saved!"
+	DISPLAY "Run worm255.trd in your favourite emulator."

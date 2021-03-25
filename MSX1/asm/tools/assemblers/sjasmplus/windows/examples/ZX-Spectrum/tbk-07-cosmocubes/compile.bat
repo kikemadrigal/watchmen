@@ -1,0 +1,2 @@
+..\..\..\sjasmplus cosmocubes.zx
+pause

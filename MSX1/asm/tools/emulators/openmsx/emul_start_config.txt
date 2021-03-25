@@ -1,0 +1,9 @@
+machine Philips_NMS_8255 
+ext msxdos2 
+ext gfx9000 
+bind F12 cycle videosource
+plug joyporta mouse 
+plug printerport simpl 
+set throttle off
+after realtime 5 "set throttle on"
+diska dsk/ 
