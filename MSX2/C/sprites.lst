@@ -1,107 +1,18 @@
-Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.03.25 - 07:58:06]
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.04.07 - 07:17:28]
 
 sprites.asm
-Errors: 0
+Errors: 1
 
-       1   00:0000                              output "sprites.bin"
-       2   00:D000                      
-       3   00:D000  FE                      db   #fe               ; ID archivo binario, siempre hay que poner el mismo -1FEh
-       4   00:D001  00 D0                   dw   INICIO            ; dirección de inicio
-       5   00:D003  C0 D0                   dw   FINAL - 1         ; dirección final
-       6   00:D005  00 D0                   dw   INICIO             ; dircción del programa de ejecución (para cuando pongas r en bload"nombre_programa", r)
-       7   00:D007                      
-       8   00:D007                          org #d000 ; o 57344, org se utiliza para decirle al z80 en que posición de memoria RAM empieza nuestro programa en ensamblador
-       9   00:D000                      
-      10   00:D000                      INICIO:
-      11   00:D000  C9                      ret ; el ret es necesario para que vuelva al basic
-      12   00:D001                      
-      13   00:D001                      
-      14   00:D001                      SPRITE_DATA:
-      15   00:D001                          ; 0-
-      16   00:D001                          db 00Fh,00Fh,07Fh,01Fh,028h,067h,077h,037h
-      16   00:D001  0F 0F 7F 1F 28 67 77 37 
-      17   00:D009                          db 037h,003h,007h,00Fh,01Eh,01Fh,038h,03Ch
-      17   00:D009  37 03 07 0F 1E 1F 38 3C 
-      18   00:D011                          db 0F0h,0F0h,0FEh,0E0h,020h,020h,0F8h,0F8h
-      18   00:D011  F0 F0 FE E0 20 20 F8 F8 
-      19   00:D019                          db 0F8h,0F8h,0C0h,0F0h,060h,018h,0E0h,0F0h
-      19   00:D019  F8 F8 C0 F0 60 18 E0 F0 
-      20   00:D021                          ; 1-
-      21   00:D021                          db 00Fh,00Fh,07Fh,007h,004h,004h,01Fh,01Fh
-      21   00:D021  0F 0F 7F 07 04 04 1F 1F 
-      22   00:D029                          db 01Fh,01Fh,003h,00Fh,006h,018h,007h,00Fh
-      22   00:D029  1F 1F 03 0F 06 18 07 0F 
-      23   00:D031                          db 0F0h,0F0h,0FEh,0F8h,014h,0E6h,0EEh,0ECh
-      23   00:D031  F0 F0 FE F8 14 E6 EE EC 
-      24   00:D039                          db 0ECh,0C0h,0E0h,0F0h,078h,0F8h,01Ch,03Ch
-      24   00:D039  EC C0 E0 F0 78 F8 1C 3C 
-      25   00:D041                          ; 2-
-      26   00:D041                          db 00Fh,00Fh,07Fh,01Fh,028h,067h,077h,037h
-      26   00:D041  0F 0F 7F 1F 28 67 77 37 
-      27   00:D049                          db 037h,003h,007h,00Fh,01Eh,01Fh,003h,003h
-      27   00:D049  37 03 07 0F 1E 1F 03 03 
-      28   00:D051                          db 0F0h,0F0h,0FEh,0E0h,020h,020h,0F8h,0F8h
-      28   00:D051  F0 F0 FE E0 20 20 F8 F8 
-      29   00:D059                          db 0F8h,0F8h,0C0h,0F0h,060h,018h,0E0h,0F0h
-      29   00:D059  F8 F8 C0 F0 60 18 E0 F0 
-      30   00:D061                          ; 3-
-      31   00:D061                          db 00Fh,00Fh,07Fh,007h,004h,004h,01Fh,01Fh
-      31   00:D061  0F 0F 7F 07 04 04 1F 1F 
-      32   00:D069                          db 01Fh,01Fh,003h,00Fh,006h,018h,007h,00Fh
-      32   00:D069  1F 1F 03 0F 06 18 07 0F 
-      33   00:D071                          db 0F0h,0F0h,0FEh,0F8h,014h,0E6h,0EEh,0ECh
-      33   00:D071  F0 F0 FE F8 14 E6 EE EC 
-      34   00:D079                          db 0ECh,0C0h,0E0h,0F0h,078h,0F8h,0C0h,0C0h
-      34   00:D079  EC C0 E0 F0 78 F8 C0 C0 
-      35   00:D081                      
-      36   00:D081                      
-      37   00:D081                      COLOR_DATA:
-      38   00:D081                          ; 0-
-      39   00:D081                          db 009h,008h,008h,00Ah,00Ah,00Ah,00Ah,00Ah
-      39   00:D081  09 08 08 0A 0A 0A 0A 0A 
-      40   00:D089                          db 00Ah,00Ah,005h,005h,005h,005h,004h,004h
-      40   00:D089  0A 0A 05 05 05 05 04 04 
-      41   00:D091                          ; 1-
-      42   00:D091                          db 009h,008h,008h,00Ah,00Ah,00Ah,00Ah,00Ah
-      42   00:D091  09 08 08 0A 0A 0A 0A 0A 
-      43   00:D099                          db 00Ah,00Ah,005h,005h,005h,005h,004h,004h
-      43   00:D099  0A 0A 05 05 05 05 04 04 
-      44   00:D0A1                          ; 2-
-      45   00:D0A1                          db 009h,008h,008h,00Ah,00Ah,00Ah,00Ah,00Ah
-      45   00:D0A1  09 08 08 0A 0A 0A 0A 0A 
-      46   00:D0A9                          db 00Ah,00Ah,005h,005h,005h,005h,004h,004h
-      46   00:D0A9  0A 0A 05 05 05 05 04 04 
-      47   00:D0B1                          ; 3-
-      48   00:D0B1                          db 009h,008h,008h,00Ah,00Ah,00Ah,00Ah,00Ah
-      48   00:D0B1  09 08 08 0A 0A 0A 0A 0A 
-      49   00:D0B9                          db 00Ah,00Ah,005h,005h,005h,005h,004h,004h
-      49   00:D0B9  0A 0A 05 05 05 05 04 04 
-      50   00:D0C1                      
-      51   00:D0C1                          
-      52   00:D0C1                      
-      53   00:D0C1                      FINAL:
+Error opening file: sprites.asm
 
     LABELS
 -------------------------------------------------
-00:0000D000   INICIO
-00:0000D001 X SPRITE_DATA
-00:0000D081 X COLOR_DATA
-00:0000D0C1   FINAL
 
 
  Output: sprites.out
 -------------------------------------------------
 
  Page: 00
-  Org: 0000D000  Size: *  Used: 00000000
+  Org: 00000000  Size: *  Used: 00000000
 
     No output
-
- Output: sprites.bin
--------------------------------------------------
-
- Page: 00
-  Org: 0000D000  Size: *  Used: 000000C8
-
-   Address   Length Align   Label
-   0000D000     200         INICIO

@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "*.asm": "z80",
-        "*.s": "z80",
-        "msx_fusion.h": "c"
-    }
-}

@@ -21,7 +21,7 @@ unsigned char buffer[BUFFER_SIZE];
 
 //Getrs & setters
 char* getBuffer(){
-  return buffer;
+  return &buffer[0];
 }
 //Cargamos archivo en RAM
 void load_file_into_buffer_with_structure(char *filename){

@@ -15,11 +15,9 @@ void sys_render_update_object(TEntity *object);
 
 //Definitions
 void sys_render_init(){
-
-  SetColors(15,1,1);
-  SetBorderColor(0x01);
+  //SetColors( int ForeCol, int BackgrCol, int BorderCol )
+  SetColors(15,0,4);
   Screen(5);
-
   //Ponemos a 0 todos los sprites
   SpriteReset(); 
   // tamaño de sprites 16x16
@@ -46,9 +44,11 @@ void sys_render_update_player(TEntity *player){
     // 5 color  
     //PutSprite( pplano, psprite, px,py, pcolor );
     //Si se mueve a la derecha
-    if (player->dir==3){
+    if (player->dir==1 || player->dir==5){
+        PutSprite( player->plane, player_up1_pattern, player->x,player->y,0 );
+    }else if (player->dir==3){
         if (player->jump==1){
-            PutSprite( player->plane, player_jump_right_pattern, player->x,player->y,0 );
+            PutSprite( player->plane, player_Jump_right_pattern, player->x,player->y,0 );
         }else{
             if(player->andando ==0 ){
                 PutSprite( player->plane, player_right_pattern, player->x,player->y,0 );
@@ -59,7 +59,7 @@ void sys_render_update_player(TEntity *player){
     //Si se mueve a la izquierda
     }else if(player->dir==7){
         if (player->jump==1){
-            PutSprite( player->plane, player_Jump_left_pattern, player->x,player->y,0 );
+            PutSprite( player->plane, player_jump_left_pattern, player->x,player->y,0 );
         }else{
             if(player->andando ==0){
                 PutSprite( player->plane, player_left_pattern, player->x,player->y, 0 );

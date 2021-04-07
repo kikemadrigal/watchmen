@@ -39,6 +39,7 @@ struct TEntity{
     unsigned char dir;
     unsigned char andando;
     unsigned char jump;
+    unsigned char scale;
     unsigned char collision;
     unsigned char plane;
     unsigned char sprite;
@@ -84,14 +85,15 @@ char sys_entity_get_max_objects();
 const TEntity player_template={
     entity_type_player, // Type
     entity_cmp_movable | entity_cmp_render | entity_cmp_input, //Components 
-    8*2,8*20,            //x,y  ,20*8 es el suelo, 8*16 plataforma
+    0,0,            //x,y  ,se lo asignamos en el game.c
     8*1,8*16,           //old position
     16,16,             //width, heigh
     4,8,                 //speed X,speed Y 
     3,                   //direction
     0,                   //is it jumpimg?
     0,                   //is it colliding?
-    0,                   //plano, inutilizado
+    0,                   //He can scale?
+    player_plane,        //plano, inutilizado
     0,                    //Sprite, inutilizado
     10,                  //Color, inutilizado
     100                  //Enenrgy
@@ -106,6 +108,7 @@ const TEntity object_template={
     3,                  //direction
     0,                  //is it jumpimg?
     0,                  //is it colliding?
+    0,                  //he can scale?
     object1_oxigen_plane, //plano,  inutilizado
     0,                  //Sprite, inutilizado
     10,                 //Color, inutilizado
@@ -117,10 +120,11 @@ const TEntity enemy1_template={
     0,0,            //x,y  ,20*8 es el suelo, 8*16 plataforma
     0,0,           //old position
     8,8,             //width, heigh
-    8,8,                //speed X,speed Y 
+    4,4,                //speed X,speed Y 
     3,                  //direction
     0,                  //is it jumpimg?
     0,                  //is it colliding?
+    0,                  //he can scale?
     enemy1_plane,       //plano,  inutilizado
     0,                  //Sprite, inutilizado
     10,                 //Color, inutilizado
@@ -136,6 +140,7 @@ const TEntity shot_template={
     3,                  //direction
     0,                  //is it jumpimg?
     0,                  //is it colliding?
+    0,                  //he can scale?
     shot_plane,                  //plano,  inutilizado
     0,                  //Sprite, inutilizado
     10,                 //Color, inutilizado
@@ -164,8 +169,6 @@ TEntity* sys_entity_create_enemy1(){
     TEntity* enemy=&array_structs_enemies[num_enemies];
     memcpy(enemy,&enemy1_template,sizeof(TEntity));
     ++num_enemies;
-    //enemy->plane=num_enemies*4+enemy1_plane;
-
     return enemy;
 }  
 TEntity* sys_entity_create_shot(){
@@ -188,7 +191,14 @@ TEntity* sys_entity_create_object(){
 void sys_entity_erase_enemy(char i){
    --num_enemies;
    TEntity *enemy=&array_structs_enemies[i];
-   PutSprite(enemy->plane , player_Jump_left_pattern, 0,212,0 );
+   PutSprite(enemy->plane , player_Jump_right_pattern, 0,212,0 );
+   //array_structs_enemies[i]=array_structs_enemies[num_enemies];
+   memcpy(&array_structs_enemies[i],&array_structs_enemies[num_enemies],sizeof(TEntity));
+}
+void sys_entity_erase_all_enemies(char i){
+   --num_enemies;
+   TEntity *enemy=&array_structs_enemies[i];
+   PutSprite(enemy->plane , player_Jump_right_pattern, 0,212,0 );
    //array_structs_enemies[i]=array_structs_enemies[num_enemies];
    memcpy(&array_structs_enemies[i],&array_structs_enemies[num_enemies],sizeof(TEntity));
 }

@@ -92,4 +92,4 @@ clean:
 
 emulator:
 	# Starting emulator script 
-	./openMSX/emul_start.sh
+	./tools/emulators/openmsx-16.0/emul_start.sh

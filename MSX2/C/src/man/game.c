@@ -8,13 +8,16 @@
 #include "src/man/entity.c"
 #include "src/sys/physics.c"
 #include "src/sys/render.c"
+#include "src/sys/collider.c"
+#include "src/sys/ai.c"
 #include "src/man/files.c"
-#include "src/sprites/player.c"
+#include "src/man/sprites.c"
 
 
 void man_game_init();
 void man_game_play();
 void man_game_update();
+void man_game_check_change_world();
 void man_game_pintarMapa();
 void man_game_showBuffer();
 void man_game_copiarSpritesVRAM();
@@ -22,8 +25,10 @@ void man_game_cargar_buffer_musica();
 void man_game_cargar_buffer_efectos_sonido();
 void man_game_reproducir_musica_y_efectos();
 void man_game_reproducir_efecto_sonido(char effect);
-void wait();
 
+void wait();
+void debug();
+void pintar_HUD();
 //Efectos
 #define SONG_EFFECT_TAM 1207
 unsigned char songEffectsBuffer[SONG_EFFECT_TAM]; 
@@ -42,7 +47,13 @@ FCB TFileMusic;
 TEntity* player;
 char actual_world;
 char world_change;
+unsigned long time;
+unsigned int hours,minutes,secunds;
+unsigned int memory_space;
 
+TEntity* array_enemies;
+
+int resultado;
 void man_game_init(){
     //Inicializamos la pantalla en screen 5
     sys_render_init();
@@ -82,21 +93,34 @@ void man_game_init(){
     world_change=1;
     //creamos al player
     player=sys_entity_create_player();
-    PutText(25,20, "Press any key to continue",0);
+    PutText(0,0, "Eres un vigilante y como siempre estas durmiendo te han robado.",0);
+    PutText(0,16, "Atrapa a todos los ladr0nes y recoge las monedas que han ido perdiendo.",0);
+    PutText(20,180, "Press any key to continue",0);
     WaitKey();
 }
 
 void man_game_play(){
     do{
         //Musica y efectos
-        man_game_reproducir_musica_y_efectos();
+        //man_game_reproducir_musica_y_efectos();
         //Player
         sys_physics_update(player);
         sys_render_update(player);
+        //Enemigos
+        for (char i=0;i<sys_entity_get_num_enemies();++i){
+            TEntity *enemy=&array_enemies[i];
+            //Le aplicamos un comportamiento a los enemigos según el tipo de enemigo que sea
+            sys_ai_update(enemy);
+            sys_render_update(enemy);
+        }
+
         //Game
         man_game_update();
+        //
+        //debug();
         //Pausa
         wait();
+
     }while(1);
 }
 
@@ -104,24 +128,60 @@ void man_game_update(){
     if (world_change==1){
         Cls();
         if (actual_world==0){
-            char fileNameTileMap1[]="world0.bin";
-            //load_file_into_buffer("world0.bin");
+            //Leemos el mapa
             load_file_into_buffer_with_structure("world0.bin");
-            man_game_pintarMapa();
-            //showBuffer();
+            //Ponemos el player
+            //20*8 es el suelo
+            player->x=8*2;
+            player->y=8*19;
+            //Creamos los enemigos
+            TEntity *enemy1=sys_entity_create_enemy1();
+            TEntity *enemy2=sys_entity_create_enemy1();
+            enemy2->plane=enemy1_plane+sys_entity_get_num_enemies();
+            enemy2->x=4*8;
+            enemy2->y=9*8;
+            enemy2->dir=7;
+            TEntity *enemy3=sys_entity_create_enemy1();
+            enemy3->plane=enemy1_plane+sys_entity_get_num_enemies();
+            enemy3->x=6*8;
+            enemy3->y=15*8;
+            TEntity *enemy4=sys_entity_create_enemy1();
+            enemy4->plane=enemy1_plane+sys_entity_get_num_enemies();
+            enemy4->x=20*8;
+            enemy4->y=20*8;
+            
+            
+            //man_game_showBuffer();
+        }else if (actual_world==1){
+            load_file_into_buffer_with_structure("world1.bin");
+            player->x=8*2;
+            player->y=8*20;
         }
+        man_game_pintarMapa();
+        array_enemies=sys_entity_get_array_structs_enemies();
+        pintar_HUD();
         world_change=0;
+    }
+    man_game_check_change_world();
+}
+void man_game_check_change_world(){
+    if (sys_collider_get_tile_array(player)==tile_end_level1 || sys_collider_get_tile_array(player)==tile_end_level2 ){
+        world_change=1;
+        actual_world+=1;
     }
 }
 
 void man_game_pintarMapa(){
     char numeroColumnas=32;
     char numeroFilas=23;
-    for (int f=0; f<numeroFilas;f++){
-        for (int c=0; c<numeroColumnas;c++){
-            //para tiles de 16*16, columnas 16, filas 11
-            //HMMM(((buffer[c+(f*numeroColumnas)]-(buffer[c+(f*numeroColumnas)]/32)*32))*32,(buffer[f*numeroColumnas+c]/32)*32+256, c*32,f*32,32,32);
-            HMMM(((buffer[f*numeroColumnas+c]-(buffer[f*numeroColumnas+c]/32)*32))*8,(buffer[f*numeroColumnas+c]/32)*8+256, c*8,f*8,8,8);
+    char filaEnTileset=0;
+    char columnaEnTileset=0;
+    for (char f=0; f<numeroFilas;f++){
+        for (char c=0; c<numeroColumnas;c++){
+            //para tiles de 32*8 de ancho 23*8 de alto
+            columnaEnTileset=(((buffer[c+(f*numeroColumnas)]/32)+1)*32)-(buffer[c+(f*numeroColumnas)]);
+            resultado=(32-columnaEnTileset)*8;
+            HMMM(resultado,(buffer[c+(f*numeroColumnas)]/32)*8+256, c*8,f*8,8,8);
         }
     }
 }
@@ -129,37 +189,38 @@ void man_game_pintarMapa(){
 void man_game_showBuffer(){
     Cls();
     Screen(1);
-    signed int dir=0;
+    unsigned int dir=0;
     printf("%d",&buffer[0]);
     printf("\r\n");
-    char numeroColumnas=16;
-    char numeroFilas=11;
-    int tileX=0;
-    for (int f=0; f<8;f++){
+    int numeroColumnas=32;
+    int numeroFilas=6;
+    int columnaEnTileset=0;
+    for (int f=4; f<numeroFilas;f++){
         printf("\r\nFila %d\r\n  ",f);
         for (int c=0; c<numeroColumnas;c++){
-            printf("%d",buffer[c+(16*f)]-(16*f));
-            //printf("%d  ",tileX);
+            columnaEnTileset=(((buffer[c+(f*numeroColumnas)]/32)+1)*32)-(buffer[c+(f*numeroColumnas)]);
+            resultado=(32-columnaEnTileset)*8;
+            printf("%d ",((buffer[c+(f*numeroColumnas)]/32)+1)*32);
+            
         } 
     }
 }
 void man_game_copiarSpritesVRAM(){
-    char sprite=0;
-    char siguiente = 0;	
-	for (char i=0; i<4; i++) {		
+    unsigned int sprite=0;
+    unsigned int siguiente = 0;	
+	for (char i=0; i<13; i++) {		
 		//SetSpritePattern(sprite, &buffer[siguiente],32);
         //También es posible cargar los sprites como datos, si antes hemos sacado
         // los datos del spritedevtool, habilita el include
-		SetSpritePattern(sprite, &SPRITE_DATA_PLAYER[siguiente],32);
-        SC5SpriteColors(i, &COLOR_DATA_PLAYER[0]);
+		SetSpritePattern(sprite, &SPRITE_DATA[siguiente],32);
+        SC5SpriteColors(i, &COLOR_DATA[0]);
 		siguiente += 32;
         sprite+=4;
 	}
     //Screen(1);
     //printf("%d", &buffer[0]);
-
-	// Tablas patrones	
-//	CopyRamToVram (&tab_sprites_from_fichero[0], dirBaseTablaSpritesPatrones, TAM_SpritesPatrones);
+	//Tablas patrones	
+    //CopyRamToVram (&tab_sprites_from_fichero[0], dirBaseTablaSpritesPatrones, TAM_SpritesPatrones);
 }
 
 void wait(){
@@ -213,4 +274,36 @@ void man_game_reproducir_efecto_sonido(char effect){
   // 10 una especie de robot
   //man_game_sincronizaFX(150);
   //PlayFX(effect);
+}
+
+void debug(){
+    //void Rect ( int X1, int Y1, int X2, int Y2, int color, int OP )
+    //void BoxFill (int X1, int Y1, int X2, int yY22, char color, char OP )
+    //time=RealTimer();      // Read Current Timer Value
+    //minutes=time/3000;           
+    //secunds=time/50;
+    BoxFill (0, 23*8, 256, 210, 6, LOGICAL_IMP );
+    PutText(0,200,Itoa(sys_collider_get_tile_down_array(player),"  ",10),8);
+    PutText(50,200,Itoa(tile_stairs1,"  ",10),8);
+    PutText(100,200,Itoa(sys_entity_get_num_enemies(),"  ",10),8);
+ 
+
+    //Screen(1);
+    //printf("%d",buffer);
+  
+    //unsigned char *buf=getBuffer();
+    //PutText(150,200,Itoa(buf[0],"  ",10),8);
+    //PutText(0,200,Itoa(hours,"  ",10),8);
+    //PutText(50,200,Itoa(minutes,"  ",10),8);
+    //if(secunds>59)secunds=0;
+    //PutText(100,200,Itoa(secunds-60,"  ",10),8);
+    //memory_space=Peekw(0x0006);
+    //PutText(150,200,Itoa(memory_space,"  ",10),8);
+}
+
+void pintar_HUD(){
+    HMMM(0,256+16,0,184,16,16);
+    HMMM(16,256+16,0,200,16,16);
+    PutText(20,184+4,Itoa(actual_world,"  ",10),8);
+    PutText(20,200+4,Itoa(player->energy,"  ",10),8);
 }

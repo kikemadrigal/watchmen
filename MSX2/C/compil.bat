@@ -21,8 +21,10 @@ rem necesitamos el .bin de la pantalla de carga y del reproductor de música
 
 start /wait sjasm sprites.asm
 start /wait sjasm world0.asm
+start /wait sjasm world1.asm
 move /y sprites.bin .\dsk
 move /y world0.bin .\dsk
+move /y world1.bin .\dsk
 
 
 
@@ -65,10 +67,10 @@ tools\Hex2bin\hex2bin -e com %program%.ihx
 copy %program%.com DSK\%program%.com /y
 
 rem del %program%.com
-del %program%.asm
+rem del %program%.asm
 del %program%.ihx
 del %program%.lk
-del %program%.lst
+rem del %program%.lst
 del %program%.map
 del %program%.noi
 del %program%.sym
@@ -79,8 +81,8 @@ echo Done.
 rem if exist %program% del /f /Q %program%
 rem copy tools\Disk-Manager-v0.17\main.dsk .\disco.dsk
 
-for /R dsk/ %%a in (*.*) do (
-    start /wait tools\Disk-Manager\DISKMGR.exe -A -F -C disco.dsk "%%a")   
+rem for /R dsk/ %%a in (*.*) do (
+rem     start /wait tools\Disk-Manager\DISKMGR.exe -A -F -C disco.dsk "%%a")   
 
 
 
