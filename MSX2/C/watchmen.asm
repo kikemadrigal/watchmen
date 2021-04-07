@@ -2,7 +2,7 @@
 ; File Created by SDCC : free open source ANSI-C Compiler
 ; Version 4.0.0 #11528 (MINGW64)
 ;--------------------------------------------------------
-	.module main
+	.module watchmen
 	.optsdcc -mz80
 	
 ;--------------------------------------------------------
@@ -3971,15 +3971,15 @@ _pintar_HUD::
 ___str_15:
 	.ascii "  "
 	.db 0x00
-;main.c:4: void main(void) 
+;watchmen.c:4: void main(void) 
 ;	---------------------------------
 ; Function main
 ; ---------------------------------
 _main::
-;main.c:6: man_game_init();
+;watchmen.c:6: man_game_init();
 	call	_man_game_init
-;main.c:7: man_game_play();
-;main.c:8: }
+;watchmen.c:7: man_game_play();
+;watchmen.c:8: }
 	jp	_man_game_play
 	.area _CODE
 	.area _INITIALIZER

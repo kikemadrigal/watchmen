@@ -2,7 +2,7 @@
                               2 ; File Created by SDCC : free open source ANSI-C Compiler
                               3 ; Version 4.0.0 #11528 (MINGW64)
                               4 ;--------------------------------------------------------
-                              5 	.module main
+                              5 	.module watchmen
                               6 	.optsdcc -mz80
                               7 	
                               8 ;--------------------------------------------------------
@@ -4005,15 +4005,15 @@
    1401                    3971 ___str_15:
    1401 20 20              3972 	.ascii "  "
    1403 00                 3973 	.db 0x00
-                           3974 ;main.c:4: void main(void) 
+                           3974 ;watchmen.c:4: void main(void) 
                            3975 ;	---------------------------------
                            3976 ; Function main
                            3977 ; ---------------------------------
    1404                    3978 _main::
-                           3979 ;main.c:6: man_game_init();
+                           3979 ;watchmen.c:6: man_game_init();
    1404 CDr3Cr0D      [17] 3980 	call	_man_game_init
-                           3981 ;main.c:7: man_game_play();
-                           3982 ;main.c:8: }
+                           3981 ;watchmen.c:7: man_game_play();
+                           3982 ;watchmen.c:8: }
    1407 C3rC3r0E      [10] 3983 	jp	_man_game_play
                            3984 	.area _CODE
                            3985 	.area _INITIALIZER

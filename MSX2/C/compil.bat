@@ -13,7 +13,7 @@ SET DEST=dsk\
 SET INCLUDEDIR=fusion-c\include\
 SET LIBDIR=fusion-c\lib\
 
-SET program=main
+SET program=watchmen
 
 
 rem sjasm (http://www.xl2s.tk/) es un compilador de ensamblador z80 que puedo convertir tu código ensamblador en los archivos binarios.rom y .bin
