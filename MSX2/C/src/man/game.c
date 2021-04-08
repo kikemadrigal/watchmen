@@ -152,7 +152,10 @@ void man_game_play(){
             if (sys_collider_get_tile_array(player)==tile_phone1 || sys_collider_get_tile_array(player)==tile_phone2){
                 enabled_world_change=1;
             }
-            if (enabled_world_change==1)man_game_check_change_world();
+            if (enabled_world_change==1){
+                HMMM(64,256+40,256-16,16,16,24);
+                man_game_check_change_world();
+            }
         }
 
         //Mostramos el temporizador
@@ -227,7 +230,7 @@ void man_game_update(){
         //Esto deshabilita la puerta para cambiar de mundo hasta que no se cojan las mondas
         enabled_world_change=0;
         //Pintamos en la puerta de salida otra puerta
-        //HMMM(9*8,256,0,30*8,16,24);
+        HMMM(80,256,256-16,16,16,24);
     }
     
 }

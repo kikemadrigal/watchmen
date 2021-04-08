@@ -3075,16 +3075,34 @@ _man_game_play::
 	ld	hl,#_enabled_world_change + 0
 	ld	(hl), #0x01
 00113$:
-;src/man/game.c:155: if (enabled_world_change==1)man_game_check_change_world();
+;src/man/game.c:155: if (enabled_world_change==1){
 	ld	a,(#_enabled_world_change + 0)
 	dec	a
 	jr	NZ,00118$
+;src/man/game.c:156: HMMM(64,256+40,256-16,16,16,24);
+	ld	hl, #0x0018
+	push	hl
+	ld	l, #0x10
+	push	hl
+	ld	l, #0x10
+	push	hl
+	ld	l, #0xf0
+	push	hl
+	ld	hl, #0x0128
+	push	hl
+	ld	hl, #0x0040
+	push	hl
+	call	_HMMM
+	ld	hl, #12
+	add	hl, sp
+	ld	sp, hl
+;src/man/game.c:157: man_game_check_change_world();
 	call	_man_game_check_change_world
 00118$:
-;src/man/game.c:159: time=RealTimer();
+;src/man/game.c:162: time=RealTimer();
 	call	_RealTimer
 	ld	(_time), hl
-;src/man/game.c:160: PutText(200,192,Itoa(time/60,"      ",10),0);
+;src/man/game.c:163: PutText(200,192,Itoa(time/60,"      ",10),0);
 	ld	hl, #0x003c
 	push	hl
 	ld	hl, (_time)
@@ -3114,18 +3132,18 @@ _man_game_play::
 	pop	af
 	pop	af
 	inc	sp
-;src/man/game.c:165: wait();
+;src/man/game.c:168: wait();
 	call	_wait
-;src/man/game.c:166: }while(1);
+;src/man/game.c:169: }while(1);
 	jp	00119$
-;src/man/game.c:167: }
+;src/man/game.c:170: }
 	inc	sp
 	pop	ix
 	ret
 ___str_7:
 	.ascii "      "
 	.db 0x00
-;src/man/game.c:169: void man_game_update(){
+;src/man/game.c:172: void man_game_update(){
 ;	---------------------------------
 ; Function man_game_update
 ; ---------------------------------
@@ -3134,36 +3152,36 @@ _man_game_update::
 	push	af
 	push	af
 	push	af
-;src/man/game.c:170: if (world_change==1){
+;src/man/game.c:173: if (world_change==1){
 	ld	a,(#_world_change + 0)
 	dec	a
 	jp	NZ,00119$
-;src/man/game.c:171: Cls();
+;src/man/game.c:174: Cls();
 	call	_Cls
-;src/man/game.c:172: sys_entity_erase_all_objects();
+;src/man/game.c:175: sys_entity_erase_all_objects();
 	call	_sys_entity_erase_all_objects
-;src/man/game.c:173: sys_entity_erase_all_enemies();
+;src/man/game.c:176: sys_entity_erase_all_enemies();
 	call	_sys_entity_erase_all_enemies
-;src/man/game.c:175: if (actual_world==0){
+;src/man/game.c:178: if (actual_world==0){
 	ld	a,(#_actual_world + 0)
 	or	a, a
 	jr	NZ,00107$
-;src/man/game.c:177: load_file_into_buffer_with_structure("world0.bin");
+;src/man/game.c:180: load_file_into_buffer_with_structure("world0.bin");
 	ld	hl, #___str_8
 	push	hl
 	call	_load_file_into_buffer_with_structure
 	pop	af
-;src/man/game.c:179: world_money=6;
+;src/man/game.c:182: world_money=6;
 	ld	hl,#_world_money + 0
 	ld	(hl), #0x06
-;src/man/game.c:182: player->x=1*8;
+;src/man/game.c:185: player->x=1*8;
 	ld	hl, (_player)
 	inc	hl
 	inc	hl
 	ld	(hl), #0x08
 	inc	hl
 	ld	(hl), #0x00
-;src/man/game.c:183: player->y=19*8;
+;src/man/game.c:186: player->y=19*8;
 	ld	hl, (_player)
 	ld	bc, #0x0004
 	add	hl, bc
@@ -3172,56 +3190,56 @@ _man_game_update::
 	ld	(hl), #0x00
 	jr	00126$
 00107$:
-;src/man/game.c:185: }else if (actual_world==1){
+;src/man/game.c:188: }else if (actual_world==1){
 	ld	a,(#_actual_world + 0)
 	dec	a
 	jr	NZ,00104$
-;src/man/game.c:186: load_file_into_buffer_with_structure("world1.bin");
+;src/man/game.c:189: load_file_into_buffer_with_structure("world1.bin");
 	ld	hl, #___str_9
 	push	hl
 	call	_load_file_into_buffer_with_structure
 	pop	af
-;src/man/game.c:187: player->x=14*8;
+;src/man/game.c:190: player->x=14*8;
 	ld	hl, (_player)
 	inc	hl
 	inc	hl
 	ld	(hl), #0x70
 	inc	hl
 	ld	(hl), #0x00
-;src/man/game.c:188: player->y=20*8;
+;src/man/game.c:191: player->y=20*8;
 	ld	hl, (_player)
 	ld	bc, #0x0004
 	add	hl, bc
 	ld	(hl), #0xa0
 	inc	hl
 	ld	(hl), #0x00
-;src/man/game.c:189: world_money=6;
+;src/man/game.c:192: world_money=6;
 	ld	hl,#_world_money + 0
 	ld	(hl), #0x06
 	jr	00126$
 00104$:
-;src/man/game.c:190: }else if (actual_world==2){
+;src/man/game.c:193: }else if (actual_world==2){
 	ld	a,(#_actual_world + 0)
 	sub	a, #0x02
 	jr	NZ,00126$
-;src/man/game.c:191: player->x=14*8;
+;src/man/game.c:194: player->x=14*8;
 	ld	hl, (_player)
 	inc	hl
 	inc	hl
 	ld	(hl), #0x70
 	inc	hl
 	ld	(hl), #0x00
-;src/man/game.c:192: player->y=20*8;
+;src/man/game.c:195: player->y=20*8;
 	ld	hl, (_player)
 	ld	bc, #0x0004
 	add	hl, bc
 	ld	(hl), #0xa0
 	inc	hl
 	ld	(hl), #0x00
-;src/man/game.c:193: world_money=20;
+;src/man/game.c:196: world_money=20;
 	ld	hl,#_world_money + 0
 	ld	(hl), #0x14
-;src/man/game.c:200: for (int i=0;i<MAX_enemies;i++){ 
+;src/man/game.c:203: for (int i=0;i<MAX_enemies;i++){ 
 00126$:
 	ld	bc, #0x0000
 00114$:
@@ -3233,7 +3251,7 @@ _man_game_update::
 	rra
 	sbc	a, #0x80
 	jp	NC, 00109$
-;src/man/game.c:201: TCoordinate_enemy* coordinate_enemy=&world_enemies[actual_world][i];
+;src/man/game.c:204: TCoordinate_enemy* coordinate_enemy=&world_enemies[actual_world][i];
 	ld	de, (_actual_world)
 	ld	d, #0x00
 	ld	l, e
@@ -3258,12 +3276,12 @@ _man_game_update::
 	inc	sp
 	inc	sp
 	push	hl
-;src/man/game.c:202: TEntity *enemy=sys_entity_create_enemy1();
+;src/man/game.c:205: TEntity *enemy=sys_entity_create_enemy1();
 	push	bc
 	call	_sys_entity_create_enemy1
 	pop	bc
 	ex	de,hl
-;src/man/game.c:203: enemy->x=coordinate_enemy->x;
+;src/man/game.c:206: enemy->x=coordinate_enemy->x;
 	ld	hl, #0x0002
 	add	hl, de
 	ld	-4 (ix), l
@@ -3282,7 +3300,7 @@ _man_game_update::
 	inc	hl
 	ld	a, -1 (ix)
 	ld	(hl), a
-;src/man/game.c:204: enemy->y=coordinate_enemy->y;
+;src/man/game.c:207: enemy->y=coordinate_enemy->y;
 	ld	hl, #0x0004
 	add	hl, de
 	ld	-4 (ix), l
@@ -3303,7 +3321,7 @@ _man_game_update::
 	inc	hl
 	ld	a, -1 (ix)
 	ld	(hl), a
-;src/man/game.c:205: enemy->type=coordinate_enemy->type;
+;src/man/game.c:208: enemy->type=coordinate_enemy->type;
 	pop	hl
 	push	hl
 	inc	hl
@@ -3312,7 +3330,7 @@ _man_game_update::
 	inc	hl
 	ld	a, (hl)
 	ld	(de), a
-;src/man/game.c:207: enemy->plane=enemy1_plane+sys_entity_get_num_enemies();
+;src/man/game.c:210: enemy->plane=enemy1_plane+sys_entity_get_num_enemies();
 	ld	hl, #0x0011
 	add	hl, de
 	push	hl
@@ -3323,11 +3341,11 @@ _man_game_update::
 	pop	hl
 	add	a, #0x05
 	ld	(hl), a
-;src/man/game.c:200: for (int i=0;i<MAX_enemies;i++){ 
+;src/man/game.c:203: for (int i=0;i<MAX_enemies;i++){ 
 	inc	bc
 	jp	00114$
 00109$:
-;src/man/game.c:210: for (int i=0; i<MAX_objects;i++){
+;src/man/game.c:213: for (int i=0; i<MAX_objects;i++){
 	xor	a, a
 	ld	-2 (ix), a
 	ld	-1 (ix), a
@@ -3340,7 +3358,7 @@ _man_game_update::
 	rra
 	sbc	a, #0x80
 	jr	NC,00110$
-;src/man/game.c:211: TCoordinate_object* coordinate_object=&world_objects[actual_world][i];
+;src/man/game.c:214: TCoordinate_object* coordinate_object=&world_objects[actual_world][i];
 	ld	bc, (_actual_world)
 	ld	b, #0x00
 	ld	l, c
@@ -3367,11 +3385,11 @@ _man_game_update::
 	inc	sp
 	inc	sp
 	push	hl
-;src/man/game.c:212: TEntity *object=sys_entity_create_object();
+;src/man/game.c:215: TEntity *object=sys_entity_create_object();
 	call	_sys_entity_create_object
 	ld	c, l
 	ld	b, h
-;src/man/game.c:213: object->y=coordinate_object->y;
+;src/man/game.c:216: object->y=coordinate_object->y;
 	ld	hl, #0x0004
 	add	hl, bc
 	ld	-4 (ix), l
@@ -3388,7 +3406,7 @@ _man_game_update::
 	ld	(hl), e
 	inc	hl
 	ld	(hl), d
-;src/man/game.c:214: object->x=coordinate_object->x;
+;src/man/game.c:217: object->x=coordinate_object->x;
 	ld	hl, #0x0002
 	add	hl, bc
 	ld	-4 (ix), l
@@ -3403,14 +3421,14 @@ _man_game_update::
 	ld	(hl), e
 	inc	hl
 	ld	(hl), d
-;src/man/game.c:215: object->type=coordinate_object->type;
+;src/man/game.c:218: object->type=coordinate_object->type;
 	pop	hl
 	push	hl
 	ld	de, #0x0004
 	add	hl, de
 	ld	a, (hl)
 	ld	(bc), a
-;src/man/game.c:216: object->plane=object_money+sys_entity_get_num_objects();
+;src/man/game.c:219: object->plane=object_money+sys_entity_get_num_objects();
 	ld	hl, #0x0011
 	add	hl, bc
 	push	hl
@@ -3419,32 +3437,49 @@ _man_game_update::
 	pop	hl
 	add	a, #0x0f
 	ld	(hl), a
-;src/man/game.c:210: for (int i=0; i<MAX_objects;i++){
+;src/man/game.c:213: for (int i=0; i<MAX_objects;i++){
 	inc	-2 (ix)
 	jp	NZ,00117$
 	inc	-1 (ix)
 	jp	00117$
 00110$:
-;src/man/game.c:221: man_game_pintarMapa();
+;src/man/game.c:224: man_game_pintarMapa();
 	call	_man_game_pintarMapa
-;src/man/game.c:222: array_enemies=sys_entity_get_array_structs_enemies();
+;src/man/game.c:225: array_enemies=sys_entity_get_array_structs_enemies();
 	call	_sys_entity_get_array_structs_enemies
 	ld	(_array_enemies), hl
-;src/man/game.c:223: array_objects=sys_entity_get_array_structs_objects();
+;src/man/game.c:226: array_objects=sys_entity_get_array_structs_objects();
 	call	_sys_entity_get_array_structs_objects
 	ld	(_array_objects), hl
-;src/man/game.c:224: pintar_HUD();
+;src/man/game.c:227: pintar_HUD();
 	call	_pintar_HUD
-;src/man/game.c:225: SpriteOn();
+;src/man/game.c:228: SpriteOn();
 	call	_SpriteOn
-;src/man/game.c:226: world_change=0;
+;src/man/game.c:229: world_change=0;
 	ld	hl,#_world_change + 0
 	ld	(hl), #0x00
-;src/man/game.c:228: enabled_world_change=0;
+;src/man/game.c:231: enabled_world_change=0;
 	ld	hl,#_enabled_world_change + 0
 	ld	(hl), #0x00
+;src/man/game.c:233: HMMM(80,256,256-16,16,16,24);
+	ld	hl, #0x0018
+	push	hl
+	ld	l, #0x10
+	push	hl
+	ld	l, #0x10
+	push	hl
+	ld	l, #0xf0
+	push	hl
+	ld	hl, #0x0100
+	push	hl
+	ld	hl, #0x0050
+	push	hl
+	call	_HMMM
+	ld	hl, #12
+	add	hl, sp
+	ld	sp, hl
 00119$:
-;src/man/game.c:233: }
+;src/man/game.c:236: }
 	ld	sp, ix
 	pop	ix
 	ret
@@ -3454,12 +3489,12 @@ ___str_8:
 ___str_9:
 	.ascii "world1.bin"
 	.db 0x00
-;src/man/game.c:234: void man_game_check_change_world(){
+;src/man/game.c:237: void man_game_check_change_world(){
 ;	---------------------------------
 ; Function man_game_check_change_world
 ; ---------------------------------
 _man_game_check_change_world::
-;src/man/game.c:235: if (sys_collider_get_tile_array(player)==tile_end_level1 || sys_collider_get_tile_array(player)==tile_end_level2 ){
+;src/man/game.c:238: if (sys_collider_get_tile_array(player)==tile_end_level1 || sys_collider_get_tile_array(player)==tile_end_level2 ){
 	ld	hl, (_player)
 	push	hl
 	call	_sys_collider_get_tile_array
@@ -3477,16 +3512,16 @@ _man_game_check_change_world::
 	or	a, h
 	ret	NZ
 00101$:
-;src/man/game.c:236: world_change=1;
+;src/man/game.c:239: world_change=1;
 	ld	iy, #_world_change
 	ld	0 (iy), #0x01
-;src/man/game.c:237: actual_world+=1;
+;src/man/game.c:240: actual_world+=1;
 	ld	a,(#_actual_world + 0)
 	inc	a
 	ld	(_actual_world+0), a
-;src/man/game.c:239: }
+;src/man/game.c:242: }
 	ret
-;src/man/game.c:241: void man_game_pintarMapa(){
+;src/man/game.c:244: void man_game_pintarMapa(){
 ;	---------------------------------
 ; Function man_game_pintarMapa
 ; ---------------------------------
@@ -3495,13 +3530,13 @@ _man_game_pintarMapa::
 	ld	hl, #-9
 	add	hl, sp
 	ld	sp, hl
-;src/man/game.c:246: for (char f=0; f<numeroFilas;f++){
+;src/man/game.c:249: for (char f=0; f<numeroFilas;f++){
 	ld	c, #0x00
 00107$:
 	ld	a, c
 	sub	a, #0x17
 	jp	NC, 00109$
-;src/man/game.c:247: for (char c=0; c<numeroColumnas;c++){
+;src/man/game.c:250: for (char c=0; c<numeroColumnas;c++){
 	ld	b, #0x00
 	ld	l, c
 	ld	h, b
@@ -3517,7 +3552,7 @@ _man_game_pintarMapa::
 	ld	a, -1 (ix)
 	sub	a, #0x20
 	jp	NC, 00108$
-;src/man/game.c:249: columnaEnTileset=(((buffer[c+(f*numeroColumnas)]/32)+1)*32)-(buffer[c+(f*numeroColumnas)]);
+;src/man/game.c:252: columnaEnTileset=(((buffer[c+(f*numeroColumnas)]/32)+1)*32)-(buffer[c+(f*numeroColumnas)]);
 	ld	e, -1 (ix)
 	ld	d, #0x00
 	pop	hl
@@ -3560,7 +3595,7 @@ _man_game_pintarMapa::
 	rrca
 	and	a, #0xe0
 	sub	a, b
-;src/man/game.c:250: resultado=(32-columnaEnTileset)*8;
+;src/man/game.c:253: resultado=(32-columnaEnTileset)*8;
 	ld	b, a
 	ld	h, #0x00
 	ld	a, #0x20
@@ -3573,7 +3608,7 @@ _man_game_pintarMapa::
 	add	hl, hl
 	add	hl, hl
 	ld	(_resultado), hl
-;src/man/game.c:251: HMMM(resultado,(buffer[c+(f*numeroColumnas)]/32)*8+256, c*8,f*8,8,8);
+;src/man/game.c:254: HMMM(resultado,(buffer[c+(f*numeroColumnas)]/32)*8+256, c*8,f*8,8,8);
 	ld	l, c
 	ld	h, #0x00
 	add	hl, hl
@@ -3634,19 +3669,19 @@ _man_game_pintarMapa::
 	add	hl, sp
 	ld	sp, hl
 	pop	bc
-;src/man/game.c:247: for (char c=0; c<numeroColumnas;c++){
+;src/man/game.c:250: for (char c=0; c<numeroColumnas;c++){
 	inc	-1 (ix)
 	jp	00104$
 00108$:
-;src/man/game.c:246: for (char f=0; f<numeroFilas;f++){
+;src/man/game.c:249: for (char f=0; f<numeroFilas;f++){
 	inc	c
 	jp	00107$
 00109$:
-;src/man/game.c:254: }
+;src/man/game.c:257: }
 	ld	sp, ix
 	pop	ix
 	ret
-;src/man/game.c:256: void man_game_showBuffer(){
+;src/man/game.c:259: void man_game_showBuffer(){
 ;	---------------------------------
 ; Function man_game_showBuffer
 ; ---------------------------------
@@ -3655,27 +3690,27 @@ _man_game_showBuffer::
 	push	af
 	push	af
 	push	af
-;src/man/game.c:257: Cls();
+;src/man/game.c:260: Cls();
 	call	_Cls
-;src/man/game.c:258: Screen(1);
+;src/man/game.c:261: Screen(1);
 	ld	a, #0x01
 	push	af
 	inc	sp
 	call	_Screen
 	inc	sp
-;src/man/game.c:260: printf("%d",&buffer[0]);
+;src/man/game.c:263: printf("%d",&buffer[0]);
 	ld	hl, #_buffer
 	push	hl
 	ld	hl, #___str_10
 	push	hl
 	call	_printf
 	pop	af
-;src/man/game.c:261: printf("\r\n");
+;src/man/game.c:264: printf("\r\n");
 	ld	hl, #___str_12
 	ex	(sp),hl
 	call	_puts
 	pop	af
-;src/man/game.c:265: for (int f=4; f<numeroFilas;f++){
+;src/man/game.c:268: for (int f=4; f<numeroFilas;f++){
 	ld	bc, #0x0004
 00107$:
 	ld	a, c
@@ -3686,7 +3721,7 @@ _man_game_showBuffer::
 	rra
 	sbc	a, #0x80
 	jp	NC, 00109$
-;src/man/game.c:266: printf("\r\nFila %d\r\n  ",f);
+;src/man/game.c:269: printf("\r\nFila %d\r\n  ",f);
 	push	bc
 	push	bc
 	ld	hl, #___str_13
@@ -3695,7 +3730,7 @@ _man_game_showBuffer::
 	pop	af
 	pop	af
 	pop	bc
-;src/man/game.c:267: for (int c=0; c<numeroColumnas;c++){
+;src/man/game.c:270: for (int c=0; c<numeroColumnas;c++){
 	ld	l, c
 	ld	h, b
 	add	hl, hl
@@ -3714,7 +3749,7 @@ _man_game_showBuffer::
 	rra
 	sbc	a, #0x80
 	jp	NC, 00108$
-;src/man/game.c:268: columnaEnTileset=(((buffer[c+(f*numeroColumnas)]/32)+1)*32)-(buffer[c+(f*numeroColumnas)]);
+;src/man/game.c:271: columnaEnTileset=(((buffer[c+(f*numeroColumnas)]/32)+1)*32)-(buffer[c+(f*numeroColumnas)]);
 	pop	hl
 	push	hl
 	add	hl, de
@@ -3759,7 +3794,7 @@ _man_game_showBuffer::
 	ld	a, h
 	sbc	a, -1 (ix)
 	ld	h, a
-;src/man/game.c:269: resultado=(32-columnaEnTileset)*8;
+;src/man/game.c:272: resultado=(32-columnaEnTileset)*8;
 	ld	a, #0x20
 	sub	a, l
 	ld	l, a
@@ -3770,7 +3805,7 @@ _man_game_showBuffer::
 	add	hl, hl
 	add	hl, hl
 	ld	(_resultado), hl
-;src/man/game.c:270: printf("%d ",((buffer[c+(f*numeroColumnas)]/32)+1)*32);
+;src/man/game.c:273: printf("%d ",((buffer[c+(f*numeroColumnas)]/32)+1)*32);
 	ld	l, -4 (ix)
 	ld	h, -3 (ix)
 	ld	l, (hl)
@@ -3810,15 +3845,15 @@ _man_game_showBuffer::
 	pop	af
 	pop	de
 	pop	bc
-;src/man/game.c:267: for (int c=0; c<numeroColumnas;c++){
+;src/man/game.c:270: for (int c=0; c<numeroColumnas;c++){
 	inc	de
 	jp	00104$
 00108$:
-;src/man/game.c:265: for (int f=4; f<numeroFilas;f++){
+;src/man/game.c:268: for (int f=4; f<numeroFilas;f++){
 	inc	bc
 	jp	00107$
 00109$:
-;src/man/game.c:274: }
+;src/man/game.c:277: }
 	ld	sp, ix
 	pop	ix
 	ret
@@ -3839,7 +3874,7 @@ ___str_13:
 ___str_14:
 	.ascii "%d "
 	.db 0x00
-;src/man/game.c:275: void man_game_copiarSpritesVRAM(){
+;src/man/game.c:278: void man_game_copiarSpritesVRAM(){
 ;	---------------------------------
 ; Function man_game_copiarSpritesVRAM
 ; ---------------------------------
@@ -3847,7 +3882,7 @@ _man_game_copiarSpritesVRAM::
 	call	___sdcc_enter_ix
 	push	af
 	dec	sp
-;src/man/game.c:278: for (char i=0; i<14; i++) {		
+;src/man/game.c:281: for (char i=0; i<14; i++) {		
 	ld	de, #0x0000
 	ld	hl, #0x0000
 	ex	(sp), hl
@@ -3857,7 +3892,7 @@ _man_game_copiarSpritesVRAM::
 	ld	a, -1 (ix)
 	sub	a, #0x0e
 	jr	NC,00101$
-;src/man/game.c:282: SetSpritePattern(sprite, &SPRITE_DATA[siguiente],32);
+;src/man/game.c:285: SetSpritePattern(sprite, &SPRITE_DATA[siguiente],32);
 	ld	a, #<(_SPRITE_DATA)
 	add	a, -3 (ix)
 	ld	c, a
@@ -3876,7 +3911,7 @@ _man_game_copiarSpritesVRAM::
 	pop	af
 	pop	af
 	pop	de
-;src/man/game.c:284: SC5SpriteColors(i, &COLOR_DATA[sprite]);
+;src/man/game.c:287: SC5SpriteColors(i, &COLOR_DATA[sprite]);
 	ld	hl, #_COLOR_DATA
 	add	hl, de
 	ld	c, -1 (ix)
@@ -3888,23 +3923,23 @@ _man_game_copiarSpritesVRAM::
 	pop	af
 	pop	af
 	pop	de
-;src/man/game.c:286: sprite+=4;
+;src/man/game.c:289: sprite+=4;
 	inc	de
 	inc	de
 	inc	de
 	inc	de
-;src/man/game.c:288: siguiente += 32;
+;src/man/game.c:291: siguiente += 32;
 	ld	a, -3 (ix)
 	add	a, #0x20
 	ld	-3 (ix), a
 	jr	NC,00148$
 	inc	-2 (ix)
 00148$:
-;src/man/game.c:278: for (char i=0; i<14; i++) {		
+;src/man/game.c:281: for (char i=0; i<14; i++) {		
 	inc	-1 (ix)
 	jr	00105$
 00101$:
-;src/man/game.c:292: for (int i=enemy1_plane;i<object_money;i++){
+;src/man/game.c:295: for (int i=enemy1_plane;i<object_money;i++){
 	ld	bc, #0x0005
 00108$:
 	ld	a, c
@@ -3918,7 +3953,7 @@ _man_game_copiarSpritesVRAM::
 	inc	bc
 	jr	00108$
 00102$:
-;src/man/game.c:296: for (int i=object_money;i<object_money+10;i++){
+;src/man/game.c:299: for (int i=object_money;i<object_money+10;i++){
 	ld	bc, #0x000f
 00111$:
 	ld	a, c
@@ -3932,38 +3967,38 @@ _man_game_copiarSpritesVRAM::
 	inc	bc
 	jr	00111$
 00113$:
-;src/man/game.c:303: }
+;src/man/game.c:306: }
 	ld	sp, ix
 	pop	ix
 	ret
-;src/man/game.c:305: void wait(){
+;src/man/game.c:308: void wait(){
 ;	---------------------------------
 ; Function wait
 ; ---------------------------------
 _wait::
-;src/man/game.c:310: __endasm;
+;src/man/game.c:313: __endasm;
 	halt
 	halt
 	halt
-;src/man/game.c:311: }
+;src/man/game.c:314: }
 	ret
-;src/man/game.c:312: void man_game_cargar_buffer_musica(){
+;src/man/game.c:315: void man_game_cargar_buffer_musica(){
 ;	---------------------------------
 ; Function man_game_cargar_buffer_musica
 ; ---------------------------------
 _man_game_cargar_buffer_musica::
-;src/man/game.c:313: enter_name_and_extension_in_structure( &TFileMusic, &fileNameSong[0]);
+;src/man/game.c:316: enter_name_and_extension_in_structure( &TFileMusic, &fileNameSong[0]);
 	ld	hl, #_fileNameSong
 	push	hl
 	ld	hl, #_TFileMusic
 	push	hl
 	call	_enter_name_and_extension_in_structure
 	pop	af
-;src/man/game.c:314: fcb_open( &TFileMusic );
+;src/man/game.c:317: fcb_open( &TFileMusic );
 	ld	hl, #_TFileMusic
 	ex	(sp),hl
 	call	_fcb_open
-;src/man/game.c:315: fcb_read( &TFileMusic, &songBuffer[0], SONG_BUFFER_TAM );  
+;src/man/game.c:318: fcb_read( &TFileMusic, &songBuffer[0], SONG_BUFFER_TAM );  
 	ld	hl, #0x0108
 	ex	(sp),hl
 	ld	hl, #_songBuffer
@@ -3973,50 +4008,50 @@ _man_game_cargar_buffer_musica::
 	call	_fcb_read
 	pop	af
 	pop	af
-;src/man/game.c:316: fcb_close( &TFileMusic );
+;src/man/game.c:319: fcb_close( &TFileMusic );
 	ld	hl, #_TFileMusic
 	ex	(sp),hl
 	call	_fcb_close
 	pop	af
-;src/man/game.c:317: }
+;src/man/game.c:320: }
 	ret
-;src/man/game.c:318: void man_game_reproducir_musica_y_efectos(){
+;src/man/game.c:321: void man_game_reproducir_musica_y_efectos(){
 ;	---------------------------------
 ; Function man_game_reproducir_musica_y_efectos
 ; ---------------------------------
 _man_game_reproducir_musica_y_efectos::
-;src/man/game.c:320: DisableInterupt();
+;src/man/game.c:323: DisableInterupt();
 	di;	
-;src/man/game.c:321: PT3Rout();
+;src/man/game.c:324: PT3Rout();
 	call	_PT3Rout
-;src/man/game.c:322: PT3Play();
+;src/man/game.c:325: PT3Play();
 	call	_PT3Play
-;src/man/game.c:330: EnableInterupt();
+;src/man/game.c:333: EnableInterupt();
 	ei;	
-;src/man/game.c:331: }
+;src/man/game.c:334: }
 	ret
-;src/man/game.c:333: void man_game_cargar_buffer_efectos_sonido(){
+;src/man/game.c:336: void man_game_cargar_buffer_efectos_sonido(){
 ;	---------------------------------
 ; Function man_game_cargar_buffer_efectos_sonido
 ; ---------------------------------
 _man_game_cargar_buffer_efectos_sonido::
-;src/man/game.c:341: }
+;src/man/game.c:344: }
 	ret
-;src/man/game.c:343: void man_game_reproducir_efecto_sonido(char effect){
+;src/man/game.c:346: void man_game_reproducir_efecto_sonido(char effect){
 ;	---------------------------------
 ; Function man_game_reproducir_efecto_sonido
 ; ---------------------------------
 _man_game_reproducir_efecto_sonido::
-;src/man/game.c:356: }
+;src/man/game.c:359: }
 	ret
-;src/man/game.c:358: void debug(){
+;src/man/game.c:361: void debug(){
 ;	---------------------------------
 ; Function debug
 ; ---------------------------------
 _debug::
-;src/man/game.c:364: TEntity *object=&array_objects[0];
+;src/man/game.c:367: TEntity *object=&array_objects[0];
 	ld	bc, (_array_objects)
-;src/man/game.c:365: BoxFill (0, 23*8, 256, 210, 6, LOGICAL_IMP );
+;src/man/game.c:368: BoxFill (0, 23*8, 256, 210, 6, LOGICAL_IMP );
 	push	bc
 	xor	a, a
 	ld	d,a
@@ -4061,7 +4096,7 @@ _debug::
 	pop	af
 	inc	sp
 	pop	bc
-;src/man/game.c:367: PutText(50,200,Itoa(object->plane,"  ",10),8);
+;src/man/game.c:370: PutText(50,200,Itoa(object->plane,"  ",10),8);
 	ld	de, #___str_15
 	ld	l, c
 	ld	h, b
@@ -4090,7 +4125,7 @@ _debug::
 	pop	af
 	pop	af
 	inc	sp
-;src/man/game.c:368: PutText(100,200,Itoa(enabled_world_change,"  ",10),8);
+;src/man/game.c:371: PutText(100,200,Itoa(enabled_world_change,"  ",10),8);
 	ld	de, #___str_15
 	ld	hl,#_enabled_world_change + 0
 	ld	c, (hl)
@@ -4116,17 +4151,17 @@ _debug::
 	pop	af
 	pop	af
 	inc	sp
-;src/man/game.c:383: }
+;src/man/game.c:386: }
 	ret
 ___str_15:
 	.ascii "  "
 	.db 0x00
-;src/man/game.c:385: void pintar_HUD(){
+;src/man/game.c:388: void pintar_HUD(){
 ;	---------------------------------
 ; Function pintar_HUD
 ; ---------------------------------
 _pintar_HUD::
-;src/man/game.c:387: BoxFill (0, 23*8, 256, 210, 4, LOGICAL_IMP );
+;src/man/game.c:390: BoxFill (0, 23*8, 256, 210, 4, LOGICAL_IMP );
 	xor	a, a
 	ld	d,a
 	ld	e,#0x04
@@ -4143,7 +4178,7 @@ _pintar_HUD::
 	ld	hl, #10
 	add	hl, sp
 	ld	sp, hl
-;src/man/game.c:389: HMMM(0,256+16,0,188,16,16);
+;src/man/game.c:392: HMMM(0,256+16,0,188,16,16);
 	ld	hl, #0x0010
 	push	hl
 	ld	l, #0x10
@@ -4160,7 +4195,7 @@ _pintar_HUD::
 	ld	hl, #12
 	add	hl, sp
 	ld	sp, hl
-;src/man/game.c:391: HMMM(2*8,256+16,40,188,16,16);
+;src/man/game.c:394: HMMM(2*8,256+16,40,188,16,16);
 	ld	hl, #0x0010
 	push	hl
 	ld	l, #0x10
@@ -4177,7 +4212,7 @@ _pintar_HUD::
 	ld	hl, #12
 	add	hl, sp
 	ld	sp, hl
-;src/man/game.c:393: HMMM(3*8,256,100,188,16,16);
+;src/man/game.c:396: HMMM(3*8,256,100,188,16,16);
 	ld	hl, #0x0010
 	push	hl
 	ld	l, #0x10
@@ -4194,7 +4229,7 @@ _pintar_HUD::
 	ld	hl, #12
 	add	hl, sp
 	ld	sp, hl
-;src/man/game.c:394: PutText(20,192,Itoa(actual_world," ",10),8);
+;src/man/game.c:397: PutText(20,192,Itoa(actual_world," ",10),8);
 	ld	de, #___str_16
 	ld	hl,#_actual_world + 0
 	ld	c, (hl)
@@ -4220,7 +4255,7 @@ _pintar_HUD::
 	pop	af
 	pop	af
 	inc	sp
-;src/man/game.c:395: PutText(60,192,Itoa(player->lives," ",10),8);
+;src/man/game.c:398: PutText(60,192,Itoa(player->lives," ",10),8);
 	ld	de, #___str_16
 	ld	hl, (_player)
 	ld	bc, #0x0014
@@ -4248,7 +4283,7 @@ _pintar_HUD::
 	pop	af
 	pop	af
 	inc	sp
-;src/man/game.c:396: PutText(120,192,Itoa(player->points," ",10),8);
+;src/man/game.c:399: PutText(120,192,Itoa(player->points," ",10),8);
 	ld	de, #___str_16
 	ld	hl, (_player)
 	ld	bc, #0x0012
@@ -4277,7 +4312,7 @@ _pintar_HUD::
 	pop	af
 	pop	af
 	inc	sp
-;src/man/game.c:397: PutText(140,192,"Need:",0);
+;src/man/game.c:400: PutText(140,192,"Need:",0);
 	xor	a, a
 	push	af
 	inc	sp
@@ -4292,7 +4327,7 @@ _pintar_HUD::
 	pop	af
 	pop	af
 	inc	sp
-;src/man/game.c:398: PutText(180,192,Itoa(world_money,"  ",10),8);
+;src/man/game.c:401: PutText(180,192,Itoa(world_money,"  ",10),8);
 	ld	de, #___str_18+0
 	ld	hl,#_world_money + 0
 	ld	c, (hl)
@@ -4318,7 +4353,7 @@ _pintar_HUD::
 	pop	af
 	pop	af
 	inc	sp
-;src/man/game.c:401: }
+;src/man/game.c:404: }
 	ret
 ___str_16:
 	.ascii " "
