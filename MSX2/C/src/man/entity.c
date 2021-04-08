@@ -98,7 +98,7 @@ const TEntity player_template={
     player_plane,        //plano, inutilizado
     0,                   //Points, puntuación
     10,                  //Lives, vidas
-    100                  //Enenrgy
+    10                  //Enenrgy
 };
 const TEntity object_template={
     entity_type_object_money, // Type1= el enemigo se cae si encuantra un agujero y rebota con bloque sólido
@@ -114,7 +114,7 @@ const TEntity object_template={
     object_money,       //plano,  inutilizado
     0,                  //points, lives
     10,                 //lives, vidas
-    100                 //Enenrgy
+    10                 //Enenrgy
 };
 const TEntity enemy1_template={
     entity_type_enemy1, // Type1= el enemigo se cae si encuantra un agujero y rebota con bloque sólido
@@ -130,7 +130,7 @@ const TEntity enemy1_template={
     enemy1_plane,       //plano,  inutilizado
     0,                  //points, puntos
     10,                 //lives
-    100                 //Enenrgy
+    10                //Enenrgy
 };
 /*
 const TEntity shot_template={

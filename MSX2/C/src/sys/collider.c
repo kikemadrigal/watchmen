@@ -12,7 +12,7 @@ int sys_collider_get_tile_array(TEntity *entity);
 int sys_collider_get_tile_down_array(TEntity *entity);
 int sys_collider_get_tile_right_array(TEntity *entity);
 int sys_collider_get_tile_left_array(TEntity *entity);
-char sys_collider_entity1_collider_entity2(TEntity *entity1, TEntity *entity2);
+char sys_collider_entity1_collider_entity(TEntity *entity1, TEntity *entity2);
 
 unsigned char* bufferDir;
 /********FINAL DE DECLARAIONES***********/
@@ -58,7 +58,7 @@ int sys_collider_get_tile_left_array(TEntity *entity){
 
 
 
-char sys_collider_entity1_collider_entity2(TEntity *entity1, TEntity *entity2){
+char sys_collider_entity1_collider_entity(TEntity *entity1, TEntity *entity2){
     //if (enemiX < player.x + 16 &&  enemiX + 16 > player.x && enemiY < player.y + 32 && 16 + enemiY > player.y){
     if (entity2->x < entity1->x + 16 &&  entity2->x + 16 > entity1->x && entity2->y < entity1->y + 16 && 16 + entity2->y > entity1->y){
         return 1;

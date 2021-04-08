@@ -120,13 +120,18 @@ void man_game_play(){
             //Le aplicamos un comportamiento a los enemigos según el tipo de enemigo que sea
             sys_ai_update(enemy);
             sys_render_update(enemy);
+            if (sys_collider_entity1_collider_entity(player, enemy)){
+                Beep();
+                player->lives-=1;
+                pintar_HUD();
+            }
         }
         //Objetos
         for (char i=0;i<sys_entity_get_num_objects();++i){
             TEntity *object=&array_objects[i];
             sys_render_update(object);
             //Colisión de objetos con player
-            if (sys_collider_entity1_collider_entity2(player, object)){
+            if (sys_collider_entity1_collider_entity(player, object)){
                 //man_game_reproducir_efecto_sonido(5);
                 player->points+=10;
                 world_money-=1;
@@ -275,10 +280,22 @@ void man_game_copiarSpritesVRAM(){
         //También es posible cargar los sprites como datos, si antes hemos sacado
         // los datos del spritedevtool, habilita el include
 		SetSpritePattern(sprite, &SPRITE_DATA[siguiente],32);
-        SC5SpriteColors(i, &COLOR_DATA[0]);
-		siguiente += 32;
+       
+        SC5SpriteColors(i, &COLOR_DATA[sprite]);
+        
         sprite+=4;
+   
+		siguiente += 32;
+        
 	}
+    //Ahora vamos a ponerle el color a los enemigos creados dinámicamente
+    for (int i=enemy1_plane;i<object_money;i++){
+        //SC5SpriteColors(i, &COLOR_DATA_ENEMY[i]);
+    }
+    //Ahora vamos a ponerle el color a los enemigos creados dinámicamente
+    for (int i=object_money;i<object_money+10;i++){
+        //SC5SpriteColors(i, &COLOR_DATA_MONEY[i]);
+    }
     //Screen(1);
     //printf("%d", &buffer[0]);
 	//Tablas patrones	
@@ -371,13 +388,13 @@ void pintar_HUD(){
     //Copiamos la casita
     HMMM(0,256+16,0,188,16,16);
     //Copiamos al personaje gris
-    HMMM(2*8,256+16,50,188,16,16);
+    HMMM(2*8,256+16,40,188,16,16);
     //Copiamos las monedas
     HMMM(3*8,256,100,188,16,16);
-    PutText(20,192,Itoa(actual_world,"  ",10),8);
-    PutText(70,192,Itoa(player->lives,"   ",10),8);
-    PutText(120,192,Itoa(player->points,"  ",10),8);
-    PutText(140,192,"Need:",8);
+    PutText(20,192,Itoa(actual_world," ",10),8);
+    PutText(60,192,Itoa(player->lives," ",10),8);
+    PutText(120,192,Itoa(player->points," ",10),8);
+    PutText(140,192,"Need:",0);
     PutText(180,192,Itoa(world_money,"  ",10),8);
   
     
