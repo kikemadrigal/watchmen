@@ -12,6 +12,7 @@ int sys_collider_get_tile_array(TEntity *entity);
 int sys_collider_get_tile_down_array(TEntity *entity);
 int sys_collider_get_tile_right_array(TEntity *entity);
 int sys_collider_get_tile_left_array(TEntity *entity);
+char sys_collider_entity1_collider_entity2(TEntity *entity1, TEntity *entity2);
 
 unsigned char* bufferDir;
 /********FINAL DE DECLARAIONES***********/
@@ -25,12 +26,11 @@ void sys_collider_init(){
 
 int sys_collider_get_column_entity(TEntity *entity){
   //Será la posición en x/8 pixeles el tile
-  //int tile_column=(entity->x/8);
-  return (entity->x/8);
+  //El +6 es para compensar los pixeles en blanco del sprite
+  return ((entity->x+6)/8);
 }
 int sys_collider_get_file_entity(TEntity *entity){
   //Será la posición y / 8 pixeles
-  //int tile_file=(entity->y/8);
   return (entity->y/8);
 }
 int sys_collider_get_tile_array(TEntity *entity){
@@ -52,4 +52,17 @@ int sys_collider_get_tile_left_array(TEntity *entity){
   //Le sumamos 2 a la fila porque es un sprite de 16*16px, para ver el tile del suelo
   int tile_abajo=buffer[((sys_collider_get_file_entity(entity)+2)*32)+(sys_collider_get_column_entity(entity)+2)];
   return tile_abajo; 
+}
+
+
+
+
+
+char sys_collider_entity1_collider_entity2(TEntity *entity1, TEntity *entity2){
+    //if (enemiX < player.x + 16 &&  enemiX + 16 > player.x && enemiY < player.y + 32 && 16 + enemiY > player.y){
+    if (entity2->x < entity1->x + 16 &&  entity2->x + 16 > entity1->x && entity2->y < entity1->y + 16 && 16 + entity2->y > entity1->y){
+        return 1;
+    }else{
+        return 0;
+    }
 }

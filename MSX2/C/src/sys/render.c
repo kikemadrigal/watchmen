@@ -9,7 +9,7 @@ void sys_render_init();
 void sys_render_update(TEntity *entity);
 void sys_render_update_player(TEntity *player);
 void sys_render_update_enemy(TEntity *enemy);
-void sys_render_update_shot(TEntity *fire);
+//void sys_render_update_shot(TEntity *fire);
 void sys_render_update_object(TEntity *object);
 
 
@@ -24,14 +24,16 @@ void sys_render_init(){
   Sprite16(); 
   //// tamaño de sprites sin ampliar   
   SpriteSmall(); 
+  //Lo desactivamos para que se muestre cuando se cargue el mapa
+  SpriteOff();
 }
 
 
 void sys_render_update(TEntity *entity){
     if (entity->type==entity_type_player)sys_render_update_player(entity);
     if (entity->type==entity_type_enemy1)sys_render_update_enemy(entity);
-    if (entity->type==entity_type_shot)sys_render_update_shot(entity);
-    if (entity->type==entity_type_object_oxigen)sys_render_update_object(entity);
+    //if (entity->type==entity_type_shot)sys_render_update_shot(entity);
+    if (entity->type==entity_type_object_money)sys_render_update_object(entity);
     //if (entity->type==entity_type_object_batery)sys_render_update_object(entity);
 
 }
@@ -93,18 +95,14 @@ void sys_render_update_enemy(TEntity *enemy){
          PutSprite(enemy->plane,enemy1_left_walking_pattern,0,212,0);
     }
 }
-
+/*
 void sys_render_update_shot(TEntity *shot){
    if (shot->plane!=0) PutSprite(shot->plane,shot_pattern,shot->x,shot->y,0);
 }
+*/
  
 void sys_render_update_object(TEntity *object){
-
-    if (object->x>0 && object->x<256 ){
-        PutSprite(object->plane,object_oxigen_pattern,object->x,object->y,0);
-    }
-    //if (object->type==entity_type_object_oxigen  && sys_entity_get_num_objects()>0) PutSprite(object->plane,object_oxigen_pattern,object->x,object->y,0);
-
+    PutSprite(object->plane,object_money_pattern,object->x,object->y,0);
 }
 
 

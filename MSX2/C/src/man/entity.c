@@ -11,7 +11,7 @@
 #define entity_type_enemy2       0x04  
 #define entity_type_enemy3       0x08  
 #define entity_type_shot         0x10  
-#define entity_type_object_oxigen 0x16  
+#define entity_type_object_money 0x16  
 #define entity_type_object_batery 0x32  
 #define entity_type_boss         0x64 
 #define entity_type_dead         0x80  
@@ -42,37 +42,39 @@ struct TEntity{
     unsigned char scale;
     unsigned char collision;
     unsigned char plane;
-    unsigned char sprite;
-    unsigned char color;
+    unsigned int points;
+    unsigned char lives;
     unsigned int energy;
 };
 
 #define MAX_enemies 10
-#define MAX_shots 10
+//#define MAX_shots 10
 #define MAX_objects 10
 TEntity array_structs_enemies[MAX_enemies];
-TEntity array_structs_shots[MAX_shots];
+//TEntity array_structs_shots[MAX_shots];
 TEntity array_structs_objects[MAX_objects];
 char num_enemies;
-char num_shots;
+//char num_shots;
 char num_objects;
 //Functions
 void sys_entities_init();
 TEntity* sys_entity_create_player();
 TEntity* sys_enemy_create_enemy();
-TEntity* sys_enemy_create_shot();
+//TEntity* sys_enemy_create_shot();
 TEntity* sys_enemy_create_object();
 void sys_entity_erase_enemy(char i);
-void sys_entity_erase_shot(char i);
+void sys_entity_erase_all_enemies();
+//void sys_entity_erase_shot(char i);
 void sys_entity_erase_object(char i);
+void sys_entity_erase_all_objects();
 TEntity* sys_enemy_get_array_structs_enemies();
 TEntity* sys_enemy_get_array_structs_fires();
 TEntity* sys_enemy_get_array_structs_objects();
 char sys_entity_get_num_enemies();
-char sys_entity_get_num_shots();
+//char sys_entity_get_num_shots();
 char sys_entity_get_num_objects();
 char sys_entity_get_max_enemies();
-char sys_entity_get_max_shots();
+//char sys_entity_get_max_shots();
 char sys_entity_get_max_objects();
 //===================================End declarations
 
@@ -88,18 +90,18 @@ const TEntity player_template={
     0,0,            //x,y  ,se lo asignamos en el game.c
     8*1,8*16,           //old position
     16,16,             //width, heigh
-    4,8,                 //speed X,speed Y 
+    4,4,                 //speed X,speed Y 
     3,                   //direction
     0,                   //is it jumpimg?
     0,                   //is it colliding?
     0,                   //He can scale?
     player_plane,        //plano, inutilizado
-    0,                    //Sprite, inutilizado
-    10,                  //Color, inutilizado
+    0,                   //Points, puntuación
+    10,                  //Lives, vidas
     100                  //Enenrgy
 };
 const TEntity object_template={
-    entity_type_object_oxigen, // Type1= el enemigo se cae si encuantra un agujero y rebota con bloque sólido
+    entity_type_object_money, // Type1= el enemigo se cae si encuantra un agujero y rebota con bloque sólido
     entity_cmp_movable | entity_cmp_render, //Components 
     0,0,            //x,y  ,20*8 es el suelo, 8*16 plataforma
     0,0,           //old position
@@ -109,9 +111,9 @@ const TEntity object_template={
     0,                  //is it jumpimg?
     0,                  //is it colliding?
     0,                  //he can scale?
-    object1_oxigen_plane, //plano,  inutilizado
-    0,                  //Sprite, inutilizado
-    10,                 //Color, inutilizado
+    object_money,       //plano,  inutilizado
+    0,                  //points, lives
+    10,                 //lives, vidas
     100                 //Enenrgy
 };
 const TEntity enemy1_template={
@@ -126,10 +128,11 @@ const TEntity enemy1_template={
     0,                  //is it colliding?
     0,                  //he can scale?
     enemy1_plane,       //plano,  inutilizado
-    0,                  //Sprite, inutilizado
-    10,                 //Color, inutilizado
+    0,                  //points, puntos
+    10,                 //lives
     100                 //Enenrgy
 };
+/*
 const TEntity shot_template={
     entity_type_shot, // Type1= el enemigo se cae si encuantra un agujero y rebota con bloque sólido
     entity_cmp_movable | entity_cmp_render, //Components 
@@ -142,10 +145,11 @@ const TEntity shot_template={
     0,                  //is it colliding?
     0,                  //he can scale?
     shot_plane,                  //plano,  inutilizado
-    0,                  //Sprite, inutilizado
-    10,                 //Color, inutilizado
+    0,                  //points
+    4,                 //lives
     100                 //Enenrgy
 };
+*/
 
 
 //Life cicle
@@ -153,10 +157,12 @@ void sys_entities_init(){
     //Ponemos a 0 todos los valores del array de estructuras
     //void * memset ( void * ptr, int value, size_t num );
     memset(array_structs_enemies,0,sizeof(array_structs_enemies) );
+    /*
     memset(array_structs_shots,0,sizeof(array_structs_shots) );
+    */
     memset(array_structs_objects,0,sizeof(array_structs_objects) );
     num_enemies=0;
-    num_shots=0;
+    //num_shots=0;
     num_objects=0;
 }
 
@@ -171,20 +177,18 @@ TEntity* sys_entity_create_enemy1(){
     ++num_enemies;
     return enemy;
 }  
+/*
 TEntity* sys_entity_create_shot(){
     TEntity* shot=&array_structs_shots[num_shots]; 
     memcpy(shot,&shot_template,sizeof(TEntity));
     ++num_shots;
-    //shot->plane=num_objects*4+shot_plane;
-
     return shot;
 }  
+*/
 TEntity* sys_entity_create_object(){
     TEntity* object=&array_structs_objects[num_objects];
     memcpy(object,&object_template,sizeof(TEntity));
     ++num_objects;
-    //object->plane=num_objects*4+object1_oxigen_plane;
-
     return object;
 }  
 
@@ -195,13 +199,12 @@ void sys_entity_erase_enemy(char i){
    //array_structs_enemies[i]=array_structs_enemies[num_enemies];
    memcpy(&array_structs_enemies[i],&array_structs_enemies[num_enemies],sizeof(TEntity));
 }
-void sys_entity_erase_all_enemies(char i){
-   --num_enemies;
-   TEntity *enemy=&array_structs_enemies[i];
-   PutSprite(enemy->plane , player_Jump_right_pattern, 0,212,0 );
-   //array_structs_enemies[i]=array_structs_enemies[num_enemies];
-   memcpy(&array_structs_enemies[i],&array_structs_enemies[num_enemies],sizeof(TEntity));
+void sys_entity_erase_all_enemies(){
+  for (char i=0;i<sys_entity_get_num_enemies();++i){
+      sys_entity_erase_enemy(i);
+  }
 }
+/*
 void sys_entity_erase_shot(char i){
     --num_shots;
     TEntity *shot=&array_structs_shots[i];
@@ -209,12 +212,18 @@ void sys_entity_erase_shot(char i){
     //array_structs_shots[i]=array_structs_shots[num_shots];
     memcpy(&array_structs_shots[i],&array_structs_shots[num_shots],sizeof(TEntity));
 }
+*/
 void sys_entity_erase_object(char i){
     --num_objects;
     TEntity *object=&array_structs_objects[i];
-    PutSprite(object->plane, object_oxigen_pattern, 0,212,0 );
+    PutSprite(object->plane, object_money_pattern, 0,212,0 );
     //array_structs_objects[i]=array_structs_objects[num_objects];
     memcpy(&array_structs_objects[i],&array_structs_objects[num_objects],sizeof(TEntity));
+}
+void sys_entity_erase_all_objects(){
+    for (char i=0;i<sys_entity_get_num_objects();++i){
+        sys_entity_erase_object(i);
+    }
 }  
 //End life cicle
 
@@ -222,9 +231,11 @@ void sys_entity_erase_object(char i){
 TEntity* sys_entity_get_array_structs_enemies(){
     return array_structs_enemies;
 }
+/*
 TEntity* sys_entity_get_array_structs_shots(){
     return array_structs_shots;
 }
+*/
 TEntity* sys_entity_get_array_structs_objects(){
     return array_structs_objects;
 }
@@ -233,9 +244,11 @@ TEntity* sys_entity_get_array_structs_objects(){
 char sys_entity_get_num_enemies(){
     return num_enemies;
 }
+/*
 char sys_entity_get_num_shots(){
     return num_shots;
 }
+*/
 char sys_entity_get_num_objects(){
     return num_objects;
 }
@@ -244,9 +257,11 @@ char sys_entity_get_num_objects(){
 char sys_entity_get_max_enemies(){
     return MAX_enemies;
 }
+/*
 char sys_entity_get_max_shot(){
     return MAX_enemies;
 }
+*/
 char sys_entity_get_max_objects(){
     return MAX_enemies;
 }

@@ -21,8 +21,6 @@ char array_jump[5];
 //Definitions
 void sys_physics_update(TEntity *entity){
     if (entity->type==entity_type_player){
-        entity->old_x=entity->x;
-        entity->old_y=entity->y;
         sys_physics_check_keyboard(entity);
         //Sistema de salto 2 parte
         if(entity->jump==1){
@@ -45,28 +43,31 @@ void sys_physics_update(TEntity *entity){
 
 
 
-    }else if(entity->type==entity_type_shot){
+    }
+    /*
+    else if(entity->type==entity_type_shot){
         if (entity->dir==3)entity->x+=entity->vx;
         else if (entity->dir==7)entity->x-=entity->vx;
     }
+    */
 
 }
 
 
 
 void sys_physics_check_keyboard(TEntity *entity){
-    //movement
+    // Movement
     // 0=inactive  1=up 2=up & right 3=right 4=down & right 5=down 6=down & left 7=left 8=up & left 
     char joy = JoystickRead(0);
     if(joy==1){
-        //entity->vy=-8;
-        entity_jump(entity);
-        //sys_collider_get_tile_down_array(entity)==tile_stairs1|| sys_collider_get_tile_down_array(entity)==tile_stairs2
+        //Si lo que tiene en los pies o en el suelo es una escalera entonces sube por la escalera
         if(sys_collider_get_tile_array(entity)==tile_stairs1 ||sys_collider_get_tile_array(entity)==tile_stairs2 || sys_collider_get_tile_down_array(entity)==tile_stairs1|| sys_collider_get_tile_down_array(entity)==tile_stairs2){
-            //entity->scale=1;
             entity->dir=1;
             entity->y-=entity->vy;
             sys_anim_update(entity);
+        //Si debajo no tiene ninguna escalera y no está saltando
+        }else if(entity->jump==0){
+            entity_jump(entity);
         }
     }
     if(joy==2){
@@ -76,7 +77,7 @@ void sys_physics_check_keyboard(TEntity *entity){
     }
     if(joy==3){
         entity->dir=3;
-        //if (sys_collider_get_tile_right_array(entity)<sys_collider_get_floor_tiles()) 
+        //if (sys_collider_get_tile_right_array(entity)<sys_collider_get_tile_down_array(entity)) 
             entity->x+=entity->vx;
         sys_anim_update(entity);
     }
@@ -116,7 +117,7 @@ void sys_physics_check_keyboard(TEntity *entity){
 //Sistema de salto 1 parte
 void entity_jump(TEntity *entity){
     //Solo se puede saltar si no se está y aen un salto y si se está pegado a un sólido
-    if (entity->jump==0 && sys_collider_get_tile_down_array(entity)>=tile_floor_tile){
+    if (entity->jump==0 && sys_collider_get_tile_down_array(entity)>=tile_floor_tile && sys_collider_get_tile_down_array(entity)<255){
         //Activamos el salto
         entity->jump=1;  
         //invertimos la velocidad en y para que sume negativos y lo suba

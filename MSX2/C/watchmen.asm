@@ -19,13 +19,9 @@
 	.globl _Read
 	.globl _Close
 	.globl _Open
-	.globl _sys_entity_get_max_shot
 	.globl _sys_entity_get_array_structs_objects
-	.globl _sys_entity_get_array_structs_shots
 	.globl _sys_entity_get_array_structs_enemies
-	.globl _sys_entity_erase_all_enemies
 	.globl _sys_entity_create_object
-	.globl _sys_entity_create_shot
 	.globl _sys_entity_create_enemy1
 	.globl _PT3Rout
 	.globl _PT3Play
@@ -34,6 +30,8 @@
 	.globl _SetSpritePattern
 	.globl _PutSprite
 	.globl _SpriteReset
+	.globl _SpriteOn
+	.globl _SpriteOff
 	.globl _SpriteSmall
 	.globl _Sprite16
 	.globl _fcb_read
@@ -46,21 +44,28 @@
 	.globl _SetColors
 	.globl _TriggerRead
 	.globl _JoystickRead
+	.globl _RealTimer
 	.globl _SetRealTimer
 	.globl _Screen
 	.globl _Cls
+	.globl _Beep
 	.globl _KeySound
 	.globl _fileNameSong
 	.globl _fileNameSongEffects
+	.globl _world_objects
+	.globl _world_enemies
 	.globl _COLOR_DATA
 	.globl _SPRITE_DATA
 	.globl _resultado
+	.globl _array_objects
 	.globl _array_enemies
 	.globl _memory_space
 	.globl _secunds
 	.globl _minutes
 	.globl _hours
 	.globl _time
+	.globl _world_money
+	.globl _enabled_world_change
 	.globl _world_change
 	.globl _actual_world
 	.globl _player
@@ -74,22 +79,19 @@
 	.globl _bufferDir
 	.globl _buffer
 	.globl _num_objects
-	.globl _num_shots
 	.globl _num_enemies
 	.globl _array_structs_objects
-	.globl _array_structs_shots
 	.globl _array_structs_enemies
-	.globl _shot_template
 	.globl _enemy1_template
 	.globl _object_template
 	.globl _player_template
 	.globl _sys_entities_init
 	.globl _sys_entity_create_player
 	.globl _sys_entity_erase_enemy
-	.globl _sys_entity_erase_shot
+	.globl _sys_entity_erase_all_enemies
 	.globl _sys_entity_erase_object
+	.globl _sys_entity_erase_all_objects
 	.globl _sys_entity_get_num_enemies
-	.globl _sys_entity_get_num_shots
 	.globl _sys_entity_get_num_objects
 	.globl _sys_entity_get_max_enemies
 	.globl _sys_entity_get_max_objects
@@ -105,6 +107,7 @@
 	.globl _sys_collider_get_tile_down_array
 	.globl _sys_collider_get_tile_right_array
 	.globl _sys_collider_get_tile_left_array
+	.globl _sys_collider_entity1_collider_entity2
 	.globl _sys_physics_update
 	.globl _sys_physics_check_keyboard
 	.globl _entity_jump
@@ -112,7 +115,6 @@
 	.globl _sys_render_update
 	.globl _sys_render_update_player
 	.globl _sys_render_update_enemy
-	.globl _sys_render_update_shot
 	.globl _sys_render_update_object
 	.globl _sys_ai_init
 	.globl _sys_ai_update
@@ -140,14 +142,10 @@
 ;--------------------------------------------------------
 	.area _DATA
 _array_structs_enemies::
-	.ds 220
-_array_structs_shots::
-	.ds 220
+	.ds 230
 _array_structs_objects::
-	.ds 220
+	.ds 230
 _num_enemies::
-	.ds 1
-_num_shots::
 	.ds 1
 _num_objects::
 	.ds 1
@@ -175,8 +173,12 @@ _actual_world::
 	.ds 1
 _world_change::
 	.ds 1
+_enabled_world_change::
+	.ds 1
+_world_money::
+	.ds 1
 _time::
-	.ds 4
+	.ds 2
 _hours::
 	.ds 2
 _minutes::
@@ -187,6 +189,8 @@ _memory_space::
 	.ds 2
 _array_enemies::
 	.ds 2
+_array_objects::
+	.ds 2
 _resultado::
 	.ds 2
 ;--------------------------------------------------------
@@ -194,9 +198,13 @@ _resultado::
 ;--------------------------------------------------------
 	.area _INITIALIZED
 _SPRITE_DATA::
-	.ds 384
+	.ds 416
 _COLOR_DATA::
-	.ds 192
+	.ds 208
+_world_enemies::
+	.ds 100
+_world_objects::
+	.ds 100
 _fileNameSongEffects::
 	.ds 12
 _fileNameSong::
@@ -221,42 +229,32 @@ _fileNameSong::
 ; code
 ;--------------------------------------------------------
 	.area _CODE
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:152: void sys_entities_init(){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:156: void sys_entities_init(){
 ;	---------------------------------
 ; Function sys_entities_init
 ; ---------------------------------
 _sys_entities_init::
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:155: memset(array_structs_enemies,0,sizeof(array_structs_enemies) );
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:159: memset(array_structs_enemies,0,sizeof(array_structs_enemies) );
 	ld	hl, #_array_structs_enemies
-	ld	b, #0xdc
+	ld	b, #0xe6
 00103$:
 	ld	(hl), #0x00
 	inc	hl
 	djnz	00103$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:156: memset(array_structs_shots,0,sizeof(array_structs_shots) );
-	ld	hl, #_array_structs_shots
-	ld	b, #0xdc
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:163: memset(array_structs_objects,0,sizeof(array_structs_objects) );
+	ld	hl, #_array_structs_objects
+	ld	b, #0xe6
 00105$:
 	ld	(hl), #0x00
 	inc	hl
 	djnz	00105$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:157: memset(array_structs_objects,0,sizeof(array_structs_objects) );
-	ld	hl, #_array_structs_objects
-	ld	b, #0xdc
-00107$:
-	ld	(hl), #0x00
-	inc	hl
-	djnz	00107$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:158: num_enemies=0;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:164: num_enemies=0;
 	ld	hl,#_num_enemies + 0
 	ld	(hl), #0x00
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:159: num_shots=0;
-	ld	hl,#_num_shots + 0
-	ld	(hl), #0x00
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:160: num_objects=0;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:166: num_objects=0;
 	ld	hl,#_num_objects + 0
 	ld	(hl), #0x00
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:161: }
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:167: }
 	ret
 _Done_Version:
 	.ascii "Made with FUSION-C 1.2 (ebsoft)"
@@ -271,14 +269,14 @@ _player_template:
 	.db #0x10	; 16
 	.db #0x10	; 16
 	.db #0x04	;  4
-	.db #0x08	;  8
+	.db #0x04	;  4
 	.db #0x03	; 3
 	.db #0x00	; 0
 	.db #0x00	; 0
 	.db #0x00	; 0
 	.db #0x00	; 0
 	.db #0x00	; 0
-	.db #0x0a	; 10
+	.dw #0x000a
 	.db #0x64	; 100	'd'
 	.dw #0x0000
 _object_template:
@@ -298,7 +296,7 @@ _object_template:
 	.db #0x00	; 0
 	.db #0x0f	; 15
 	.db #0x00	; 0
-	.db #0x0a	; 10
+	.dw #0x000a
 	.db #0x64	; 100	'd'
 	.dw #0x0000
 _enemy1_template:
@@ -318,44 +316,24 @@ _enemy1_template:
 	.db #0x00	; 0
 	.db #0x05	; 5
 	.db #0x00	; 0
-	.db #0x0a	; 10
+	.dw #0x000a
 	.db #0x64	; 100	'd'
 	.dw #0x0000
-_shot_template:
-	.db #0x10	; 16
-	.db #0x03	; 3
-	.dw #0x0000
-	.dw #0x0000
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x08	; 8
-	.db #0x08	; 8
-	.db #0x08	;  8
-	.db #0x08	;  8
-	.db #0x03	; 3
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x00	; 0
-	.db #0x16	; 22
-	.db #0x00	; 0
-	.db #0x0a	; 10
-	.db #0x64	; 100	'd'
-	.dw #0x0000
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:165: TEntity* sys_entity_create_player(){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:171: TEntity* sys_entity_create_player(){
 ;	---------------------------------
 ; Function sys_entity_create_player
 ; ---------------------------------
 _sys_entity_create_player::
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:166: return &player_template;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:172: return &player_template;
 	ld	hl, #_player_template
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:167: }
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:173: }
 	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:168: TEntity* sys_entity_create_enemy1(){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:174: TEntity* sys_entity_create_enemy1(){
 ;	---------------------------------
 ; Function sys_entity_create_enemy1
 ; ---------------------------------
 _sys_entity_create_enemy1::
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:169: TEntity* enemy=&array_structs_enemies[num_enemies];
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:175: TEntity* enemy=&array_structs_enemies[num_enemies];
 	ld	bc, #_array_structs_enemies+0
 	ld	de, (_num_enemies)
 	ld	d, #0x00
@@ -367,67 +345,32 @@ _sys_entity_create_enemy1::
 	add	hl, hl
 	add	hl, de
 	add	hl, hl
+	add	hl, de
 	add	hl, bc
 	ld	c, l
 	ld	b, h
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:170: memcpy(enemy,&enemy1_template,sizeof(TEntity));
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:176: memcpy(enemy,&enemy1_template,sizeof(TEntity));
 	ld	e, c
 	ld	d, b
 	push	bc
 	ld	hl, #_enemy1_template
-	ld	bc, #0x0016
+	ld	bc, #0x0017
 	ldir
 	pop	bc
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:171: ++num_enemies;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:177: ++num_enemies;
 	ld	hl, #_num_enemies+0
 	inc	(hl)
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:172: return enemy;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:178: return enemy;
 	ld	l, c
 	ld	h, b
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:173: }  
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:179: }  
 	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:174: TEntity* sys_entity_create_shot(){
-;	---------------------------------
-; Function sys_entity_create_shot
-; ---------------------------------
-_sys_entity_create_shot::
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:175: TEntity* shot=&array_structs_shots[num_shots]; 
-	ld	bc, #_array_structs_shots+0
-	ld	de, (_num_shots)
-	ld	d, #0x00
-	ld	l, e
-	ld	h, d
-	add	hl, hl
-	add	hl, hl
-	add	hl, de
-	add	hl, hl
-	add	hl, de
-	add	hl, hl
-	add	hl, bc
-	ld	c, l
-	ld	b, h
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:176: memcpy(shot,&shot_template,sizeof(TEntity));
-	ld	e, c
-	ld	d, b
-	push	bc
-	ld	hl, #_shot_template
-	ld	bc, #0x0016
-	ldir
-	pop	bc
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:177: ++num_shots;
-	ld	hl, #_num_shots+0
-	inc	(hl)
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:180: return shot;
-	ld	l, c
-	ld	h, b
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:181: }  
-	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:182: TEntity* sys_entity_create_object(){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:188: TEntity* sys_entity_create_object(){
 ;	---------------------------------
 ; Function sys_entity_create_object
 ; ---------------------------------
 _sys_entity_create_object::
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:183: TEntity* object=&array_structs_objects[num_objects];
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:189: TEntity* object=&array_structs_objects[num_objects];
 	ld	bc, #_array_structs_objects+0
 	ld	de, (_num_objects)
 	ld	d, #0x00
@@ -439,35 +382,36 @@ _sys_entity_create_object::
 	add	hl, hl
 	add	hl, de
 	add	hl, hl
+	add	hl, de
 	add	hl, bc
 	ld	c, l
 	ld	b, h
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:184: memcpy(object,&object_template,sizeof(TEntity));
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:190: memcpy(object,&object_template,sizeof(TEntity));
 	ld	e, c
 	ld	d, b
 	push	bc
 	ld	hl, #_object_template
-	ld	bc, #0x0016
+	ld	bc, #0x0017
 	ldir
 	pop	bc
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:185: ++num_objects;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:191: ++num_objects;
 	ld	hl, #_num_objects+0
 	inc	(hl)
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:188: return object;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:192: return object;
 	ld	l, c
 	ld	h, b
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:189: }  
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:193: }  
 	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:191: void sys_entity_erase_enemy(char i){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:195: void sys_entity_erase_enemy(char i){
 ;	---------------------------------
 ; Function sys_entity_erase_enemy
 ; ---------------------------------
 _sys_entity_erase_enemy::
 	call	___sdcc_enter_ix
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:192: --num_enemies;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:196: --num_enemies;
 	ld	hl, #_num_enemies+0
 	dec	(hl)
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:193: TEntity *enemy=&array_structs_enemies[i];
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:197: TEntity *enemy=&array_structs_enemies[i];
 	ld	c, 4 (ix)
 	ld	b, #0x00
 	ld	l, c
@@ -478,13 +422,14 @@ _sys_entity_erase_enemy::
 	add	hl, hl
 	add	hl, bc
 	add	hl, hl
+	add	hl, bc
 	ex	de, hl
 	ld	hl, #_array_structs_enemies
 	add	hl, de
 	ex	de, hl
 	ld	l, e
 	ld	h, d
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:194: PutSprite(enemy->plane , player_Jump_right_pattern, 0,212,0 );
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:198: PutSprite(enemy->plane , player_Jump_right_pattern, 0,212,0 );
 	ld	bc, #0x0011
 	add	hl, bc
 	ld	b, (hl)
@@ -504,7 +449,7 @@ _sys_entity_erase_enemy::
 	pop	af
 	inc	sp
 	pop	de
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:196: memcpy(&array_structs_enemies[i],&array_structs_enemies[num_enemies],sizeof(TEntity));
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:200: memcpy(&array_structs_enemies[i],&array_structs_enemies[num_enemies],sizeof(TEntity));
 	ld	bc, (_num_enemies)
 	ld	b, #0x00
 	ld	l, c
@@ -515,151 +460,49 @@ _sys_entity_erase_enemy::
 	add	hl, hl
 	add	hl, bc
 	add	hl, hl
+	add	hl, bc
 	ld	bc, #_array_structs_enemies
 	add	hl, bc
-	ld	bc, #0x0016
+	ld	bc, #0x0017
 	ldir
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:197: }
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:201: }
 	pop	ix
 	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:198: void sys_entity_erase_all_enemies(char i){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:202: void sys_entity_erase_all_enemies(){
 ;	---------------------------------
 ; Function sys_entity_erase_all_enemies
 ; ---------------------------------
 _sys_entity_erase_all_enemies::
-	call	___sdcc_enter_ix
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:199: --num_enemies;
-	ld	hl, #_num_enemies+0
-	dec	(hl)
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:200: TEntity *enemy=&array_structs_enemies[i];
-	ld	c, 4 (ix)
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:203: for (char i=0;i<sys_entity_get_num_enemies();++i){
 	ld	b, #0x00
-	ld	l, c
-	ld	h, b
-	add	hl, hl
-	add	hl, hl
-	add	hl, bc
-	add	hl, hl
-	add	hl, bc
-	add	hl, hl
-	ex	de, hl
-	ld	hl, #_array_structs_enemies
-	add	hl, de
-	ex	de, hl
-	ld	l, e
-	ld	h, d
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:201: PutSprite(enemy->plane , player_Jump_right_pattern, 0,212,0 );
-	ld	bc, #0x0011
-	add	hl, bc
-	ld	b, (hl)
-	push	de
-	xor	a, a
-	ld	d,a
-	ld	e,#0xd4
-	push	de
-	xor	a, a
-	ld	d,a
-	ld	e,#0x1c
-	push	de
+00103$:
+	push	bc
+	call	_sys_entity_get_num_enemies
+	pop	bc
+	ld	a, b
+	sub	a, l
+	ret	NC
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:204: sys_entity_erase_enemy(i);
+	push	bc
 	push	bc
 	inc	sp
-	call	_PutSprite
-	pop	af
-	pop	af
+	call	_sys_entity_erase_enemy
 	inc	sp
-	pop	de
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:203: memcpy(&array_structs_enemies[i],&array_structs_enemies[num_enemies],sizeof(TEntity));
-	ld	bc, (_num_enemies)
-	ld	b, #0x00
-	ld	l, c
-	ld	h, b
-	add	hl, hl
-	add	hl, hl
-	add	hl, bc
-	add	hl, hl
-	add	hl, bc
-	add	hl, hl
-	ld	bc, #_array_structs_enemies
-	add	hl, bc
-	ld	bc, #0x0016
-	ldir
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:204: }
-	pop	ix
-	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:205: void sys_entity_erase_shot(char i){
-;	---------------------------------
-; Function sys_entity_erase_shot
-; ---------------------------------
-_sys_entity_erase_shot::
-	call	___sdcc_enter_ix
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:206: --num_shots;
-	ld	hl, #_num_shots+0
-	dec	(hl)
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:207: TEntity *shot=&array_structs_shots[i];
-	ld	c, 4 (ix)
-	ld	b, #0x00
-	ld	l, c
-	ld	h, b
-	add	hl, hl
-	add	hl, hl
-	add	hl, bc
-	add	hl, hl
-	add	hl, bc
-	add	hl, hl
-	ex	de, hl
-	ld	hl, #_array_structs_shots
-	add	hl, de
-	ex	de, hl
-	ld	l, e
-	ld	h, d
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:208: PutSprite(shot->plane, shot_pattern, 0,212,0 );
-	ld	bc, #0x0011
-	add	hl, bc
-	ld	b, (hl)
-	push	de
-	xor	a, a
-	ld	d,a
-	ld	e,#0xd4
-	push	de
-	xor	a, a
-	ld	d,a
-	ld	e,#0x40
-	push	de
-	push	bc
-	inc	sp
-	call	_PutSprite
-	pop	af
-	pop	af
-	inc	sp
-	pop	de
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:210: memcpy(&array_structs_shots[i],&array_structs_shots[num_shots],sizeof(TEntity));
-	ld	bc, (_num_shots)
-	ld	b, #0x00
-	ld	l, c
-	ld	h, b
-	add	hl, hl
-	add	hl, hl
-	add	hl, bc
-	add	hl, hl
-	add	hl, bc
-	add	hl, hl
-	ld	bc, #_array_structs_shots
-	add	hl, bc
-	ld	bc, #0x0016
-	ldir
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:211: }
-	pop	ix
-	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:212: void sys_entity_erase_object(char i){
+	pop	bc
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:203: for (char i=0;i<sys_entity_get_num_enemies();++i){
+	inc	b
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:206: }
+	jr	00103$
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:216: void sys_entity_erase_object(char i){
 ;	---------------------------------
 ; Function sys_entity_erase_object
 ; ---------------------------------
 _sys_entity_erase_object::
 	call	___sdcc_enter_ix
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:213: --num_objects;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:217: --num_objects;
 	ld	hl, #_num_objects+0
 	dec	(hl)
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:214: TEntity *object=&array_structs_objects[i];
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:218: TEntity *object=&array_structs_objects[i];
 	ld	c, 4 (ix)
 	ld	b, #0x00
 	ld	l, c
@@ -670,13 +513,14 @@ _sys_entity_erase_object::
 	add	hl, hl
 	add	hl, bc
 	add	hl, hl
+	add	hl, bc
 	ex	de, hl
 	ld	hl, #_array_structs_objects
 	add	hl, de
 	ex	de, hl
 	ld	l, e
 	ld	h, d
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:215: PutSprite(object->plane, object_oxigen_pattern, 0,212,0 );
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:219: PutSprite(object->plane, object_money_pattern, 0,212,0 );
 	ld	bc, #0x0011
 	add	hl, bc
 	ld	b, (hl)
@@ -687,7 +531,7 @@ _sys_entity_erase_object::
 	push	de
 	xor	a, a
 	ld	d,a
-	ld	e,#0x38
+	ld	e,#0x30
 	push	de
 	push	bc
 	inc	sp
@@ -696,7 +540,7 @@ _sys_entity_erase_object::
 	pop	af
 	inc	sp
 	pop	de
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:217: memcpy(&array_structs_objects[i],&array_structs_objects[num_objects],sizeof(TEntity));
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:221: memcpy(&array_structs_objects[i],&array_structs_objects[num_objects],sizeof(TEntity));
 	ld	bc, (_num_objects)
 	ld	b, #0x00
 	ld	l, c
@@ -707,96 +551,94 @@ _sys_entity_erase_object::
 	add	hl, hl
 	add	hl, bc
 	add	hl, hl
+	add	hl, bc
 	ld	bc, #_array_structs_objects
 	add	hl, bc
-	ld	bc, #0x0016
+	ld	bc, #0x0017
 	ldir
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:218: }  
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:222: }
 	pop	ix
 	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:222: TEntity* sys_entity_get_array_structs_enemies(){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:223: void sys_entity_erase_all_objects(){
+;	---------------------------------
+; Function sys_entity_erase_all_objects
+; ---------------------------------
+_sys_entity_erase_all_objects::
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:224: for (char i=0;i<sys_entity_get_num_objects();++i){
+	ld	b, #0x00
+00103$:
+	push	bc
+	call	_sys_entity_get_num_objects
+	pop	bc
+	ld	a, b
+	sub	a, l
+	ret	NC
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:225: sys_entity_erase_object(i);
+	push	bc
+	push	bc
+	inc	sp
+	call	_sys_entity_erase_object
+	inc	sp
+	pop	bc
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:224: for (char i=0;i<sys_entity_get_num_objects();++i){
+	inc	b
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:227: }  
+	jr	00103$
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:231: TEntity* sys_entity_get_array_structs_enemies(){
 ;	---------------------------------
 ; Function sys_entity_get_array_structs_enemies
 ; ---------------------------------
 _sys_entity_get_array_structs_enemies::
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:223: return array_structs_enemies;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:232: return array_structs_enemies;
 	ld	hl, #_array_structs_enemies
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:224: }
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:233: }
 	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:225: TEntity* sys_entity_get_array_structs_shots(){
-;	---------------------------------
-; Function sys_entity_get_array_structs_shots
-; ---------------------------------
-_sys_entity_get_array_structs_shots::
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:226: return array_structs_shots;
-	ld	hl, #_array_structs_shots
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:227: }
-	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:228: TEntity* sys_entity_get_array_structs_objects(){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:239: TEntity* sys_entity_get_array_structs_objects(){
 ;	---------------------------------
 ; Function sys_entity_get_array_structs_objects
 ; ---------------------------------
 _sys_entity_get_array_structs_objects::
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:229: return array_structs_objects;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:240: return array_structs_objects;
 	ld	hl, #_array_structs_objects
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:230: }
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:241: }
 	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:233: char sys_entity_get_num_enemies(){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:244: char sys_entity_get_num_enemies(){
 ;	---------------------------------
 ; Function sys_entity_get_num_enemies
 ; ---------------------------------
 _sys_entity_get_num_enemies::
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:234: return num_enemies;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:245: return num_enemies;
 	ld	iy, #_num_enemies
 	ld	l, 0 (iy)
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:235: }
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:246: }
 	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:236: char sys_entity_get_num_shots(){
-;	---------------------------------
-; Function sys_entity_get_num_shots
-; ---------------------------------
-_sys_entity_get_num_shots::
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:237: return num_shots;
-	ld	iy, #_num_shots
-	ld	l, 0 (iy)
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:238: }
-	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:239: char sys_entity_get_num_objects(){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:252: char sys_entity_get_num_objects(){
 ;	---------------------------------
 ; Function sys_entity_get_num_objects
 ; ---------------------------------
 _sys_entity_get_num_objects::
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:240: return num_objects;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:253: return num_objects;
 	ld	iy, #_num_objects
 	ld	l, 0 (iy)
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:241: }
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:254: }
 	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:244: char sys_entity_get_max_enemies(){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:257: char sys_entity_get_max_enemies(){
 ;	---------------------------------
 ; Function sys_entity_get_max_enemies
 ; ---------------------------------
 _sys_entity_get_max_enemies::
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:245: return MAX_enemies;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:258: return MAX_enemies;
 	ld	l, #0x0a
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:246: }
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:259: }
 	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:247: char sys_entity_get_max_shot(){
-;	---------------------------------
-; Function sys_entity_get_max_shot
-; ---------------------------------
-_sys_entity_get_max_shot::
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:248: return MAX_enemies;
-	ld	l, #0x0a
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:249: }
-	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:250: char sys_entity_get_max_objects(){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:265: char sys_entity_get_max_objects(){
 ;	---------------------------------
 ; Function sys_entity_get_max_objects
 ; ---------------------------------
 _sys_entity_get_max_objects::
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:251: return MAX_enemies;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:266: return MAX_enemies;
 	ld	l, #0x0a
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:252: }
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/man/entity.c:267: }
 	ret
 ;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/anim.c:9: void sys_anim_init(){}
 ;	---------------------------------
@@ -1077,36 +919,38 @@ _enter_name_and_extension_in_structure::
 	ld	sp, ix
 	pop	ix
 	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/collider.c:22: void sys_collider_init(){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/collider.c:23: void sys_collider_init(){
 ;	---------------------------------
 ; Function sys_collider_init
 ; ---------------------------------
 _sys_collider_init::
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/collider.c:23: bufferDir=getBuffer();
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/collider.c:24: bufferDir=getBuffer();
 	call	_getBuffer
 	ld	(_bufferDir), hl
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/collider.c:24: }
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/collider.c:25: }
 	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/collider.c:26: int sys_collider_get_column_entity(TEntity *entity){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/collider.c:27: int sys_collider_get_column_entity(TEntity *entity){
 ;	---------------------------------
 ; Function sys_collider_get_column_entity
 ; ---------------------------------
 _sys_collider_get_column_entity::
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/collider.c:29: return (entity->x/8);
-	pop	bc
-	pop	hl
-	push	hl
-	push	bc
+	call	___sdcc_enter_ix
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/collider.c:30: return ((entity->x+6)/8);
+	ld	l, 4 (ix)
+	ld	h, 5 (ix)
 	inc	hl
 	inc	hl
 	ld	c, (hl)
 	inc	hl
 	ld	b, (hl)
-	ld	l, c
-	ld	h, b
-	bit	7, b
+	ld	hl, #0x0006
+	add	hl, bc
+	ex	de, hl
+	ld	l, e
+	ld	h, d
+	bit	7, d
 	jr	Z,00103$
-	ld	hl, #0x0007
+	ld	hl, #0x000d
 	add	hl, bc
 00103$:
 	ld	b, #0x03
@@ -1114,9 +958,10 @@ _sys_collider_get_column_entity::
 	sra	h
 	rr	l
 	djnz	00109$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/collider.c:30: }
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/collider.c:31: }
+	pop	ix
 	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/collider.c:31: int sys_collider_get_file_entity(TEntity *entity){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/collider.c:32: int sys_collider_get_file_entity(TEntity *entity){
 ;	---------------------------------
 ; Function sys_collider_get_file_entity
 ; ---------------------------------
@@ -1286,96 +1131,185 @@ _sys_collider_get_tile_left_array::
 ;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/collider.c:55: }
 	pop	ix
 	ret
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/collider.c:61: char sys_collider_entity1_collider_entity2(TEntity *entity1, TEntity *entity2){
+;	---------------------------------
+; Function sys_collider_entity1_collider_entity2
+; ---------------------------------
+_sys_collider_entity1_collider_entity2::
+	call	___sdcc_enter_ix
+	push	af
+	push	af
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/collider.c:63: if (entity2->x < entity1->x + 16 &&  entity2->x + 16 > entity1->x && entity2->y < entity1->y + 16 && 16 + entity2->y > entity1->y){
+	ld	a, 6 (ix)
+	ld	-4 (ix), a
+	ld	a, 7 (ix)
+	ld	-3 (ix), a
+	pop	hl
+	push	hl
+	inc	hl
+	inc	hl
+	ld	c, (hl)
+	inc	hl
+	ld	b, (hl)
+	ld	a, 4 (ix)
+	ld	-2 (ix), a
+	ld	a, 5 (ix)
+	ld	-1 (ix), a
+	pop	de
+	pop	hl
+	push	hl
+	push	de
+	inc	hl
+	inc	hl
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	ld	hl, #0x0010
+	add	hl, de
+	ld	a, c
+	sub	a, l
+	ld	a, b
+	sbc	a, h
+	jp	PO, 00129$
+	xor	a, #0x80
+00129$:
+	jp	P, 00102$
+	ld	hl, #0x0010
+	add	hl, bc
+	ld	a, e
+	sub	a, l
+	ld	a, d
+	sbc	a, h
+	jp	PO, 00130$
+	xor	a, #0x80
+00130$:
+	jp	P, 00102$
+	pop	hl
+	push	hl
+	ld	de, #0x0004
+	add	hl, de
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	pop	bc
+	pop	hl
+	push	hl
+	push	bc
+	ld	bc, #0x0004
+	add	hl, bc
+	ld	c, (hl)
+	inc	hl
+	ld	b, (hl)
+	ld	hl, #0x0010
+	add	hl, bc
+	ld	a, e
+	sub	a, l
+	ld	a, d
+	sbc	a, h
+	jp	PO, 00131$
+	xor	a, #0x80
+00131$:
+	jp	P, 00102$
+	ld	hl, #0x0010
+	add	hl, de
+	ld	a, c
+	sub	a, l
+	ld	a, b
+	sbc	a, h
+	jp	PO, 00132$
+	xor	a, #0x80
+00132$:
+	jp	P, 00102$
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/collider.c:64: return 1;
+	ld	l, #0x01
+	jr	00107$
+00102$:
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/collider.c:66: return 0;
+	ld	l, #0x00
+00107$:
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/./src/sys/collider.c:68: }
+	ld	sp, ix
+	pop	ix
+	ret
 ;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:22: void sys_physics_update(TEntity *entity){
 ;	---------------------------------
 ; Function sys_physics_update
 ; ---------------------------------
 _sys_physics_update::
 	call	___sdcc_enter_ix
-	ld	hl, #-10
-	add	hl, sp
-	ld	sp, hl
+	push	af
+	push	af
+	push	af
+	push	af
 ;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:23: if (entity->type==entity_type_player){
 	ld	c, 4 (ix)
 	ld	b, 5 (ix)
 	ld	a, (bc)
-	ld	e, a
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:24: entity->old_x=entity->x;
-	ld	hl, #0x0002
-	add	hl, bc
-	ex	(sp), hl
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:23: if (entity->type==entity_type_player){
-	ld	a, e
 	dec	a
-	jp	NZ,00120$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:24: entity->old_x=entity->x;
-	ld	hl, #0x0006
-	add	hl, bc
-	ex	de, hl
-	pop	hl
-	push	hl
-	ld	a, (hl)
-	ld	(de), a
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:25: entity->old_y=entity->y;
-	ld	hl, #0x0007
-	add	hl, bc
-	ld	-8 (ix), l
-	ld	-7 (ix), h
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:29: entity->y+=entity->vy;
-	ld	hl, #0x0004
-	add	hl, bc
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:25: entity->old_y=entity->y;
-	ld	-6 (ix), l
-	ld	-5 (ix), h
-	ld	a, (hl)
-	pop	de
-	pop	hl
-	push	hl
-	push	de
-	ld	(hl), a
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:26: sys_physics_check_keyboard(entity);
+	jp	NZ,00114$
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:24: sys_physics_check_keyboard(entity);
 	push	bc
 	push	bc
 	call	_sys_physics_check_keyboard
 	pop	af
 	pop	bc
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:28: if(entity->jump==1){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:26: if(entity->jump==1){
 	ld	hl, #0x000e
 	add	hl, bc
-	ld	-4 (ix), l
-	ld	-3 (ix), h
-	ld	e, (hl)
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:29: entity->y+=entity->vy;
-	ld	hl, #0x000b
-	add	hl, bc
-	ld	-2 (ix), l
-	ld	-1 (ix), h
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:28: if(entity->jump==1){
-	dec	e
+	ex	(sp), hl
+	pop	hl
+	push	hl
+	ld	l, (hl)
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:27: entity->y+=entity->vy;
+	ld	a, c
+	add	a, #0x04
+	ld	e, a
+	ld	a, b
+	adc	a, #0x00
+	ld	d, a
+	ld	a, c
+	add	a, #0x0b
+	ld	-6 (ix), a
+	ld	a, b
+	adc	a, #0x00
+	ld	-5 (ix), a
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:26: if(entity->jump==1){
+	dec	l
 	jr	NZ,00104$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:29: entity->y+=entity->vy;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:27: entity->y+=entity->vy;
+	ld	a, (de)
+	ld	-4 (ix), a
+	inc	de
+	ld	a, (de)
+	ld	-3 (ix), a
+	dec	de
 	ld	l, -6 (ix)
 	ld	h, -5 (ix)
-	ld	e, (hl)
-	inc	hl
-	ld	d, (hl)
-	ld	l, -2 (ix)
-	ld	h, -1 (ix)
 	ld	a, (hl)
 	ld	l, a
 	rla
 	sbc	a, a
 	ld	h, a
-	add	hl, de
-	ex	de, hl
-	ld	l, -6 (ix)
-	ld	h, -5 (ix)
-	ld	(hl), e
+	ld	a, l
+	add	a, -4 (ix)
+	ld	-2 (ix), a
+	ld	a, h
+	adc	a, -3 (ix)
+	ld	-1 (ix), a
+	ld	l, e
+	ld	h, d
+	ld	a, -2 (ix)
+	ld	(hl), a
 	inc	hl
-	ld	(hl), d
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:30: if(entity->old_y-16>=entity->y){
-	ld	l, -8 (ix)
-	ld	h, -7 (ix)
+	ld	a, -1 (ix)
+	ld	(hl), a
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:28: if(entity->old_y-16>=entity->y){
+	ld	l, c
+	ld	h, b
+	push	bc
+	ld	bc, #0x0007
+	add	hl, bc
+	pop	bc
 	ld	l, (hl)
 	ld	h, #0x00
 	ld	a, l
@@ -1385,181 +1319,126 @@ _sys_physics_update::
 	adc	a, #0xff
 	ld	h, a
 	ld	a, l
-	sub	a, e
+	sub	a, -2 (ix)
 	ld	a, h
-	sbc	a, d
-	jp	PO, 00173$
+	sbc	a, -1 (ix)
+	jp	PO, 00150$
 	xor	a, #0x80
-00173$:
+00150$:
 	jp	M, 00104$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:31: entity->vy*=-1;
-	ld	l, -2 (ix)
-	ld	h, -1 (ix)
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:29: entity->vy*=-1;
+	ld	l, -6 (ix)
+	ld	h, -5 (ix)
 	ld	a, (hl)
 	neg
-	ld	l, -2 (ix)
-	ld	h, -1 (ix)
+	ld	l, -6 (ix)
+	ld	h, -5 (ix)
 	ld	(hl), a
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:32: entity->jump=0;
-	ld	l, -4 (ix)
-	ld	h, -3 (ix)
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:30: entity->jump=0;
+	pop	hl
+	push	hl
 	ld	(hl), #0x00
 00104$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:36: if(entity->x<=0) entity->x=0;
-	pop	hl
-	push	hl
-	ld	e, (hl)
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:34: if(entity->x<=0) entity->x=0;
+	ld	l, c
+	ld	h, b
 	inc	hl
-	ld	d, (hl)
+	inc	hl
+	ld	a, (hl)
+	ld	-2 (ix), a
+	inc	hl
+	ld	a, (hl)
+	ld	-1 (ix), a
+	dec	hl
 	xor	a, a
-	cp	a, e
-	sbc	a, d
-	jp	PO, 00174$
+	cp	a, -2 (ix)
+	sbc	a, -1 (ix)
+	jp	PO, 00151$
 	xor	a, #0x80
-00174$:
+00151$:
 	jp	M, 00106$
-	pop	hl
-	push	hl
 	xor	a, a
 	ld	(hl), a
 	inc	hl
 	ld	(hl), a
 00106$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:38: if(entity->y>180) entity->y=212-16;
-	ld	l, -6 (ix)
-	ld	h, -5 (ix)
-	ld	e, (hl)
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:36: if(entity->y>180) entity->y=212-16;
+	ld	l, e
+	ld	h, d
+	ld	a, (hl)
 	inc	hl
-	ld	d, (hl)
+	ld	h, (hl)
+	ld	l, a
 	ld	a, #0xb4
-	cp	a, e
+	cp	a, l
 	ld	a, #0x00
-	sbc	a, d
-	jp	PO, 00175$
+	sbc	a, h
+	jp	PO, 00152$
 	xor	a, #0x80
-00175$:
+00152$:
 	jp	P, 00108$
-	ld	l, -6 (ix)
-	ld	h, -5 (ix)
+	ld	l, e
+	ld	h, d
 	ld	(hl), #0xc4
 	inc	hl
 	ld	(hl), #0x00
 00108$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:41: if (sys_collider_get_tile_down_array(entity)<tile_stairs1 || sys_collider_get_tile_down_array(entity)>=255){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:39: if (sys_collider_get_tile_down_array(entity)<tile_stairs1 || sys_collider_get_tile_down_array(entity)>=255){
 	push	bc
+	push	de
 	push	bc
 	call	_sys_collider_get_tile_down_array
 	pop	af
+	pop	de
 	pop	bc
-	ld	de, #0x80c0
-	add	hl, hl
+	ld	a, l
+	sub	a, #0xc0
+	ld	a, h
+	rla
 	ccf
-	rr	h
-	rr	l
-	sbc	hl, de
+	rra
+	sbc	a, #0x80
 	jr	C,00109$
+	push	de
 	push	bc
 	call	_sys_collider_get_tile_down_array
 	pop	af
-	ld	de, #0x80ff
+	pop	de
+	ld	bc, #0x80ff
 	add	hl, hl
 	ccf
 	rr	h
 	rr	l
-	sbc	hl, de
-	jr	C,00122$
+	sbc	hl, bc
+	jr	C,00114$
 00109$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:43: entity->y+=entity->vy;
-	ld	l, -6 (ix)
-	ld	h, -5 (ix)
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:41: entity->y+=entity->vy;
+	ld	l, e
+	ld	h, d
 	ld	c, (hl)
 	inc	hl
 	ld	b, (hl)
-	ld	l, -2 (ix)
-	ld	h, -1 (ix)
+	ld	l, -6 (ix)
+	ld	h, -5 (ix)
 	ld	a, (hl)
 	ld	l, a
 	rla
 	sbc	a, a
 	ld	h, a
 	add	hl, bc
-	ex	de, hl
-	ld	l, -6 (ix)
-	ld	h, -5 (ix)
-	ld	(hl), e
-	inc	hl
-	ld	(hl), d
-	jr	00122$
-00120$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:48: }else if(entity->type==entity_type_shot){
-	ld	a, e
-	sub	a, #0x10
-	jr	NZ,00122$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:49: if (entity->dir==3)entity->x+=entity->vx;
-	ld	l, c
-	ld	h, b
-	ld	de, #0x000c
-	add	hl, de
-	ld	l, (hl)
+	ld	c, l
+	ld	b, h
 	ld	a, c
-	add	a, #0x0a
-	ld	c, a
-	jr	NC,00178$
-	inc	b
-00178$:
-	ld	a, l
-	sub	a, #0x03
-	jr	NZ,00115$
-	pop	hl
-	push	hl
-	ld	e, (hl)
-	inc	hl
-	ld	d, (hl)
-	ld	a, (bc)
-	ld	l, a
-	rla
-	sbc	a, a
-	ld	h, a
-	add	hl, de
-	ex	de, hl
-	pop	hl
-	push	hl
-	ld	(hl), e
-	inc	hl
-	ld	(hl), d
-	jr	00122$
-00115$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:50: else if (entity->dir==7)entity->x-=entity->vx;
-	ld	a, l
-	sub	a, #0x07
-	jr	NZ,00122$
-	pop	hl
-	push	hl
-	ld	e, (hl)
-	inc	hl
-	ld	d, (hl)
-	ld	a, (bc)
-	ld	c, a
-	rla
-	sbc	a, a
-	ld	b, a
-	ld	a, e
-	sub	a, c
-	ld	c, a
-	ld	a, d
-	sbc	a, b
-	ld	b, a
-	pop	hl
-	push	hl
-	ld	(hl), c
-	inc	hl
-	ld	(hl), b
-00122$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:53: }
+	ld	(de), a
+	inc	de
+	ld	a, b
+	ld	(de), a
+00114$:
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:54: }
 	ld	sp, ix
 	pop	ix
 	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:57: void sys_physics_check_keyboard(TEntity *entity){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:58: void sys_physics_check_keyboard(TEntity *entity){
 ;	---------------------------------
 ; Function sys_physics_check_keyboard
 ; ---------------------------------
@@ -1568,21 +1447,21 @@ _sys_physics_check_keyboard::
 	ld	hl, #-11
 	add	hl, sp
 	ld	sp, hl
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:60: char joy = JoystickRead(0);
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:61: char joy = JoystickRead(0);
 	xor	a, a
 	push	af
 	inc	sp
 	call	_JoystickRead
 	inc	sp
 	ld	-11 (ix), l
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:67: entity->dir=1;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:65: entity->dir=1;
 	ld	c, 4 (ix)
 	ld	b, 5 (ix)
 	ld	hl, #0x000c
 	add	hl, bc
 	ld	-10 (ix), l
 	ld	-9 (ix), h
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:68: entity->y-=entity->vy;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:66: entity->y-=entity->vy;
 	ld	hl, #0x0004
 	add	hl, bc
 	ld	-8 (ix), l
@@ -1591,17 +1470,12 @@ _sys_physics_check_keyboard::
 	add	hl, bc
 	ld	-6 (ix), l
 	ld	-5 (ix), h
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:61: if(joy==1){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:62: if(joy==1){
 	ld	a, -11 (ix)
 	dec	a
-	jp	NZ,00107$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:63: entity_jump(entity);
+	jp	NZ,00110$
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:64: if(sys_collider_get_tile_array(entity)==tile_stairs1 ||sys_collider_get_tile_array(entity)==tile_stairs2 || sys_collider_get_tile_down_array(entity)==tile_stairs1|| sys_collider_get_tile_down_array(entity)==tile_stairs2){
 	push	bc
-	ld	l, 4 (ix)
-	ld	h, 5 (ix)
-	push	hl
-	call	_entity_jump
-	pop	af
 	ld	l, 4 (ix)
 	ld	h, 5 (ix)
 	push	hl
@@ -1611,7 +1485,7 @@ _sys_physics_check_keyboard::
 	ld	a, l
 	sub	a, #0xc0
 	or	a, h
-	jr	Z,00101$
+	jr	Z,00103$
 	push	bc
 	ld	l, 4 (ix)
 	ld	h, 5 (ix)
@@ -1622,7 +1496,7 @@ _sys_physics_check_keyboard::
 	ld	a, l
 	sub	a, #0xc1
 	or	a, h
-	jr	Z,00101$
+	jr	Z,00103$
 	push	bc
 	ld	l, 4 (ix)
 	ld	h, 5 (ix)
@@ -1633,7 +1507,7 @@ _sys_physics_check_keyboard::
 	ld	a, l
 	sub	a, #0xc0
 	or	a, h
-	jr	Z,00101$
+	jr	Z,00103$
 	push	bc
 	ld	l, 4 (ix)
 	ld	h, 5 (ix)
@@ -1644,13 +1518,13 @@ _sys_physics_check_keyboard::
 	ld	a, l
 	sub	a, #0xc1
 	or	a, h
-	jr	NZ,00107$
-00101$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:67: entity->dir=1;
+	jr	NZ,00104$
+00103$:
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:65: entity->dir=1;
 	ld	l, -10 (ix)
 	ld	h, -9 (ix)
 	ld	(hl), #0x01
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:68: entity->y-=entity->vy;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:66: entity->y-=entity->vy;
 	ld	l, -8 (ix)
 	ld	h, -7 (ix)
 	ld	e, (hl)
@@ -1674,14 +1548,30 @@ _sys_physics_check_keyboard::
 	ld	(hl), e
 	inc	hl
 	ld	(hl), d
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:69: sys_anim_update(entity);
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:67: sys_anim_update(entity);
 	push	bc
 	push	bc
 	call	_sys_anim_update
 	pop	af
 	pop	bc
-00107$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:75: entity->x+=entity->vx;
+	jr	00110$
+00104$:
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:69: }else if(entity->jump==0){
+	ld	l, c
+	ld	h, b
+	ld	de, #0x000e
+	add	hl, de
+	ld	a, (hl)
+	or	a, a
+	jr	NZ,00110$
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:70: entity_jump(entity);
+	push	bc
+	push	bc
+	call	_entity_jump
+	pop	af
+	pop	bc
+00110$:
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:76: entity->x+=entity->vx;
 	ld	hl, #0x0002
 	add	hl, bc
 	ld	-4 (ix), l
@@ -1690,21 +1580,21 @@ _sys_physics_check_keyboard::
 	add	hl, bc
 	ld	-2 (ix), l
 	ld	-1 (ix), h
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:72: if(joy==2){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:73: if(joy==2){
 	ld	a, -11 (ix)
 	sub	a, #0x02
-	jr	NZ,00109$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:73: entity->dir=3;
+	jr	NZ,00112$
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:74: entity->dir=3;
 	ld	l, -10 (ix)
 	ld	h, -9 (ix)
 	ld	(hl), #0x03
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:74: entity_jump(entity); 
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:75: entity_jump(entity); 
 	push	bc
 	push	bc
 	call	_entity_jump
 	pop	af
 	pop	bc
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:75: entity->x+=entity->vx;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:76: entity->x+=entity->vx;
 	ld	l, -4 (ix)
 	ld	h, -3 (ix)
 	ld	e, (hl)
@@ -1724,16 +1614,16 @@ _sys_physics_check_keyboard::
 	ld	(hl), e
 	inc	hl
 	ld	(hl), d
-00109$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:77: if(joy==3){
+00112$:
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:78: if(joy==3){
 	ld	a, -11 (ix)
 	sub	a, #0x03
-	jr	NZ,00111$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:78: entity->dir=3;
+	jr	NZ,00114$
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:79: entity->dir=3;
 	ld	l, -10 (ix)
 	ld	h, -9 (ix)
 	ld	(hl), #0x03
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:80: entity->x+=entity->vx;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:81: entity->x+=entity->vx;
 	ld	l, -4 (ix)
 	ld	h, -3 (ix)
 	ld	e, (hl)
@@ -1753,18 +1643,18 @@ _sys_physics_check_keyboard::
 	ld	(hl), e
 	inc	hl
 	ld	(hl), d
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:81: sys_anim_update(entity);
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:82: sys_anim_update(entity);
 	push	bc
 	push	bc
 	call	_sys_anim_update
 	pop	af
 	pop	bc
-00111$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:85: if(joy==5){
+00114$:
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:86: if(joy==5){
 	ld	a, -11 (ix)
 	sub	a, #0x05
-	jr	NZ,00116$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:86: if(sys_collider_get_tile_down_array(entity)==tile_stairs1 ||sys_collider_get_tile_down_array(entity)==tile_stairs2 ){
+	jr	NZ,00119$
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:87: if(sys_collider_get_tile_down_array(entity)==tile_stairs1 ||sys_collider_get_tile_down_array(entity)==tile_stairs2 ){
 	push	bc
 	ld	l, 4 (ix)
 	ld	h, 5 (ix)
@@ -1775,7 +1665,7 @@ _sys_physics_check_keyboard::
 	ld	a, l
 	sub	a, #0xc0
 	or	a, h
-	jr	Z,00112$
+	jr	Z,00115$
 	push	bc
 	ld	l, 4 (ix)
 	ld	h, 5 (ix)
@@ -1786,13 +1676,13 @@ _sys_physics_check_keyboard::
 	ld	a, l
 	sub	a, #0xc1
 	or	a, h
-	jr	NZ,00116$
-00112$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:87: entity->dir=5;
+	jr	NZ,00119$
+00115$:
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:88: entity->dir=5;
 	ld	l, -10 (ix)
 	ld	h, -9 (ix)
 	ld	(hl), #0x05
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:88: entity->y+=entity->vy;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:89: entity->y+=entity->vy;
 	ld	l, -8 (ix)
 	ld	h, -7 (ix)
 	ld	e, (hl)
@@ -1812,28 +1702,28 @@ _sys_physics_check_keyboard::
 	ld	(hl), e
 	inc	hl
 	ld	(hl), d
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:89: sys_anim_update(entity);
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:90: sys_anim_update(entity);
 	push	bc
 	push	bc
 	call	_sys_anim_update
 	pop	af
 	pop	bc
-00116$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:94: if(joy==7) {
+00119$:
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:95: if(joy==7) {
 	ld	a, -11 (ix)
 	sub	a, #0x07
-	jr	NZ,00118$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:95: entity->dir=7;
+	jr	NZ,00121$
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:96: entity->dir=7;
 	ld	l, -10 (ix)
 	ld	h, -9 (ix)
 	ld	(hl), #0x07
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:96: sys_anim_update(entity);
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:97: sys_anim_update(entity);
 	push	bc
 	push	bc
 	call	_sys_anim_update
 	pop	af
 	pop	bc
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:97: entity->x-=entity->vx; 
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:98: entity->x-=entity->vx; 
 	ld	l, -4 (ix)
 	ld	h, -3 (ix)
 	ld	e, (hl)
@@ -1857,20 +1747,20 @@ _sys_physics_check_keyboard::
 	ld	(hl), e
 	inc	hl
 	ld	(hl), d
-00118$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:99: if(joy==8){
+00121$:
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:100: if(joy==8){
 	ld	a, -11 (ix)
 	sub	a, #0x08
-	jr	NZ,00120$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:100: entity->dir=7;
+	jr	NZ,00123$
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:101: entity->dir=7;
 	ld	l, -10 (ix)
 	ld	h, -9 (ix)
 	ld	(hl), #0x07
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:101: entity_jump(entity);
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:102: entity_jump(entity);
 	push	bc
 	call	_entity_jump
 	pop	af
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:102: entity->x-=entity->vx; 
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:103: entity->x-=entity->vx; 
 	ld	l, -4 (ix)
 	ld	h, -3 (ix)
 	ld	c, (hl)
@@ -1894,24 +1784,24 @@ _sys_physics_check_keyboard::
 	ld	(hl), c
 	inc	hl
 	ld	(hl), b
-00120$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:106: char trigger = TriggerRead(0);
+00123$:
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:107: char trigger = TriggerRead(0);
 	xor	a, a
 	push	af
 	inc	sp
 	call	_TriggerRead
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:107: if (trigger!=0) {
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:114: }
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:108: if (trigger!=0) {
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:115: }
 	ld	sp,ix
 	pop	ix
 	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:117: void entity_jump(TEntity *entity){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:118: void entity_jump(TEntity *entity){
 ;	---------------------------------
 ; Function entity_jump
 ; ---------------------------------
 _entity_jump::
 	call	___sdcc_enter_ix
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:119: if (entity->jump==0 && sys_collider_get_tile_down_array(entity)>=tile_floor_tile){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:120: if (entity->jump==0 && sys_collider_get_tile_down_array(entity)>=tile_floor_tile && sys_collider_get_tile_down_array(entity)<255){
 	ld	c, 4 (ix)
 	ld	b, 5 (ix)
 	ld	hl, #0x000e
@@ -1919,7 +1809,7 @@ _entity_jump::
 	ex	de, hl
 	ld	a, (de)
 	or	a, a
-	jr	NZ,00104$
+	jr	NZ,00105$
 	push	bc
 	push	de
 	push	bc
@@ -1934,17 +1824,32 @@ _entity_jump::
 	ccf
 	rra
 	sbc	a, #0x80
-	jr	C,00104$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:121: entity->jump=1;  
+	jr	C,00105$
+	push	bc
+	push	de
+	push	bc
+	call	_sys_collider_get_tile_down_array
+	pop	af
+	pop	de
+	pop	bc
+	ld	a, l
+	sub	a, #0xff
+	ld	a, h
+	rla
+	ccf
+	rra
+	sbc	a, #0x80
+	jr	NC,00105$
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:122: entity->jump=1;  
 	ld	a, #0x01
 	ld	(de), a
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:123: entity->vy*=-1;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:124: entity->vy*=-1;
 	ld	hl, #0x000b
 	add	hl, bc
 	ld	a, (hl)
 	neg
 	ld	(hl), a
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:124: entity->old_y=entity->y;
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:125: entity->old_y=entity->y;
 	ld	hl, #0x0007
 	add	hl, bc
 	ex	de, hl
@@ -1954,8 +1859,8 @@ _entity_jump::
 	add	hl, bc
 	ld	a, (hl)
 	ld	(de), a
-00104$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:126: }
+00105$:
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/physics.c:127: }
 	pop	ix
 	ret
 ;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:17: void sys_render_init(){
@@ -1985,14 +1890,16 @@ _sys_render_init::
 ;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:24: Sprite16(); 
 	call	_Sprite16
 ;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:26: SpriteSmall(); 
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:27: }
-	jp	_SpriteSmall
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:30: void sys_render_update(TEntity *entity){
+	call	_SpriteSmall
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:28: SpriteOff();
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:29: }
+	jp	_SpriteOff
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:32: void sys_render_update(TEntity *entity){
 ;	---------------------------------
 ; Function sys_render_update
 ; ---------------------------------
 _sys_render_update::
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:31: if (entity->type==entity_type_player)sys_render_update_player(entity);
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:33: if (entity->type==entity_type_player)sys_render_update_player(entity);
 	pop	de
 	pop	bc
 	push	bc
@@ -2006,7 +1913,7 @@ _sys_render_update::
 	pop	af
 	pop	bc
 00102$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:32: if (entity->type==entity_type_enemy1)sys_render_update_enemy(entity);
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:34: if (entity->type==entity_type_enemy1)sys_render_update_enemy(entity);
 	ld	a, (bc)
 	sub	a, #0x02
 	jr	NZ,00104$
@@ -2021,30 +1928,16 @@ _sys_render_update::
 	pop	af
 	pop	bc
 00104$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:33: if (entity->type==entity_type_shot)sys_render_update_shot(entity);
-	ld	a, (bc)
-	sub	a, #0x10
-	jr	NZ,00106$
-	push	bc
-	push	bc
-	call	_sys_render_update_shot
-	pop	af
-	pop	bc
-00106$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:34: if (entity->type==entity_type_object_oxigen)sys_render_update_object(entity);
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:36: if (entity->type==entity_type_object_money)sys_render_update_object(entity);
 	ld	a, (bc)
 	sub	a, #0x16
 	ret	NZ
-	pop	bc
-	pop	hl
-	push	hl
 	push	bc
-	push	hl
 	call	_sys_render_update_object
 	pop	af
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:37: }
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:39: }
 	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:38: void sys_render_update_player(TEntity *player){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:40: void sys_render_update_player(TEntity *player){
 ;	---------------------------------
 ; Function sys_render_update_player
 ; ---------------------------------
@@ -2054,7 +1947,7 @@ _sys_render_update_player::
 	push	af
 	push	af
 	dec	sp
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:47: if (player->dir==1 || player->dir==5){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:49: if (player->dir==1 || player->dir==5){
 	ld	c, 4 (ix)
 	ld	b, 5 (ix)
 	ld	l, c
@@ -2063,7 +1956,7 @@ _sys_render_update_player::
 	add	hl, de
 	ld	a, (hl)
 	ld	-7 (ix), a
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:48: PutSprite( player->plane, player_up1_pattern, player->x,player->y,0 );
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:50: PutSprite( player->plane, player_up1_pattern, player->x,player->y,0 );
 	ld	hl, #0x0004
 	add	hl, bc
 	ld	-6 (ix), l
@@ -2076,7 +1969,7 @@ _sys_render_update_player::
 	add	hl, bc
 	ld	-4 (ix), l
 	ld	-3 (ix), h
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:47: if (player->dir==1 || player->dir==5){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:49: if (player->dir==1 || player->dir==5){
 	ld	a, -7 (ix)
 	dec	a
 	jr	Z,00118$
@@ -2084,7 +1977,7 @@ _sys_render_update_player::
 	sub	a, #0x05
 	jr	NZ,00119$
 00118$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:48: PutSprite( player->plane, player_up1_pattern, player->x,player->y,0 );
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:50: PutSprite( player->plane, player_up1_pattern, player->x,player->y,0 );
 	ld	l, -6 (ix)
 	ld	h, -5 (ix)
 	ld	c, (hl)
@@ -2109,23 +2002,23 @@ _sys_render_update_player::
 	inc	sp
 	jp	00122$
 00119$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:50: if (player->jump==1){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:52: if (player->jump==1){
 	ld	hl, #0x000e
 	add	hl, bc
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:53: if(player->andando ==0 ){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:55: if(player->andando ==0 ){
 	ld	a, c
 	add	a, #0x0d
 	ld	-2 (ix), a
 	ld	a, b
 	adc	a, #0x00
 	ld	-1 (ix), a
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:49: }else if (player->dir==3){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:51: }else if (player->dir==3){
 	ld	a, -7 (ix)
 	sub	a, #0x03
 	jr	NZ,00116$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:50: if (player->jump==1){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:52: if (player->jump==1){
 	ld	c, (hl)
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:48: PutSprite( player->plane, player_up1_pattern, player->x,player->y,0 );
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:50: PutSprite( player->plane, player_up1_pattern, player->x,player->y,0 );
 	ld	l, -6 (ix)
 	ld	h, -5 (ix)
 	ld	b, (hl)
@@ -2134,10 +2027,10 @@ _sys_render_update_player::
 	ld	l, -4 (ix)
 	ld	h, -3 (ix)
 	ld	d, (hl)
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:50: if (player->jump==1){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:52: if (player->jump==1){
 	dec	c
 	jr	NZ,00105$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:51: PutSprite( player->plane, player_Jump_right_pattern, player->x,player->y,0 );
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:53: PutSprite( player->plane, player_Jump_right_pattern, player->x,player->y,0 );
 	xor	a, a
 	push	af
 	inc	sp
@@ -2154,13 +2047,13 @@ _sys_render_update_player::
 	inc	sp
 	jp	00122$
 00105$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:53: if(player->andando ==0 ){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:55: if(player->andando ==0 ){
 	ld	l, -2 (ix)
 	ld	h, -1 (ix)
 	ld	a, (hl)
 	or	a, a
 	jr	NZ,00102$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:54: PutSprite( player->plane, player_right_pattern, player->x,player->y,0 );
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:56: PutSprite( player->plane, player_right_pattern, player->x,player->y,0 );
 	xor	a, a
 	push	af
 	inc	sp
@@ -2177,7 +2070,7 @@ _sys_render_update_player::
 	inc	sp
 	jr	00122$
 00102$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:56: PutSprite( player->plane, player_right_walking_pattern, player->x,player->y,  0);
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:58: PutSprite( player->plane, player_right_walking_pattern, player->x,player->y,  0);
 	xor	a, a
 	push	af
 	inc	sp
@@ -2194,13 +2087,13 @@ _sys_render_update_player::
 	inc	sp
 	jr	00122$
 00116$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:60: }else if(player->dir==7){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:62: }else if(player->dir==7){
 	ld	a, -7 (ix)
 	sub	a, #0x07
 	jr	NZ,00122$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:61: if (player->jump==1){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:63: if (player->jump==1){
 	ld	c, (hl)
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:48: PutSprite( player->plane, player_up1_pattern, player->x,player->y,0 );
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:50: PutSprite( player->plane, player_up1_pattern, player->x,player->y,0 );
 	ld	l, -6 (ix)
 	ld	h, -5 (ix)
 	ld	b, (hl)
@@ -2209,10 +2102,10 @@ _sys_render_update_player::
 	ld	l, -4 (ix)
 	ld	h, -3 (ix)
 	ld	e, (hl)
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:61: if (player->jump==1){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:63: if (player->jump==1){
 	dec	c
 	jr	NZ,00111$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:62: PutSprite( player->plane, player_jump_left_pattern, player->x,player->y,0 );
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:64: PutSprite( player->plane, player_jump_left_pattern, player->x,player->y,0 );
 	xor	a, a
 	push	af
 	inc	sp
@@ -2226,13 +2119,13 @@ _sys_render_update_player::
 	inc	sp
 	jr	00122$
 00111$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:64: if(player->andando ==0){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:66: if(player->andando ==0){
 	ld	l, -2 (ix)
 	ld	h, -1 (ix)
 	ld	a, (hl)
 	or	a, a
 	jr	NZ,00108$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:65: PutSprite( player->plane, player_left_pattern, player->x,player->y, 0 );
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:67: PutSprite( player->plane, player_left_pattern, player->x,player->y, 0 );
 	xor	a, a
 	push	af
 	inc	sp
@@ -2247,7 +2140,7 @@ _sys_render_update_player::
 	inc	sp
 	jr	00122$
 00108$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:67: PutSprite( player->plane, player_left_walking_pattern, player->x,player->y,  0 );
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:69: PutSprite( player->plane, player_left_walking_pattern, player->x,player->y,  0 );
 	xor	a, a
 	push	af
 	inc	sp
@@ -2260,11 +2153,11 @@ _sys_render_update_player::
 	pop	af
 	inc	sp
 00122$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:71: }
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:73: }
 	ld	sp, ix
 	pop	ix
 	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:75: void sys_render_update_enemy(TEntity *enemy){   
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:77: void sys_render_update_enemy(TEntity *enemy){   
 ;	---------------------------------
 ; Function sys_render_update_enemy
 ; ---------------------------------
@@ -2273,13 +2166,13 @@ _sys_render_update_enemy::
 	push	af
 	push	af
 	push	af
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:77: sys_anim_update(enemy);
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:79: sys_anim_update(enemy);
 	ld	l, 4 (ix)
 	ld	h, 5 (ix)
 	push	hl
 	call	_sys_anim_update
 	pop	af
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:79: if (enemy->dir==3 && enemy->x<256 && enemy->x>0){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:81: if (enemy->dir==3 && enemy->x<256 && enemy->x>0){
 	ld	e, 4 (ix)
 	ld	d, 5 (ix)
 	ld	l, e
@@ -2290,12 +2183,12 @@ _sys_render_update_enemy::
 	ld	hl, #0x0002
 	add	hl, de
 	ex	(sp), hl
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:80: if (enemy->andando){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:82: if (enemy->andando){
 	ld	hl, #0x000d
 	add	hl, de
 	ld	-4 (ix), l
 	ld	-3 (ix), h
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:81: PutSprite(enemy->plane,enemy1_right_pattern,enemy->x,enemy->y,0);
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:83: PutSprite(enemy->plane,enemy1_right_pattern,enemy->x,enemy->y,0);
 	ld	hl, #0x0004
 	add	hl, de
 	ld	-2 (ix), l
@@ -2304,7 +2197,7 @@ _sys_render_update_enemy::
 	ld	de, #0x0011
 	add	hl, de
 	ld	b, (hl)
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:79: if (enemy->dir==3 && enemy->x<256 && enemy->x>0){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:81: if (enemy->dir==3 && enemy->x<256 && enemy->x>0){
 	ld	a, c
 	sub	a, #0x03
 	jr	NZ,00113$
@@ -2324,18 +2217,18 @@ _sys_render_update_enemy::
 	xor	a, #0x80
 00161$:
 	jp	P, 00113$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:80: if (enemy->andando){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:82: if (enemy->andando){
 	ld	l, -4 (ix)
 	ld	h, -3 (ix)
 	ld	a, (hl)
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:81: PutSprite(enemy->plane,enemy1_right_pattern,enemy->x,enemy->y,0);
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:83: PutSprite(enemy->plane,enemy1_right_pattern,enemy->x,enemy->y,0);
 	ld	l, -2 (ix)
 	ld	h, -1 (ix)
 	ld	d, (hl)
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:80: if (enemy->andando){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:82: if (enemy->andando){
 	or	a, a
 	jr	Z,00102$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:81: PutSprite(enemy->plane,enemy1_right_pattern,enemy->x,enemy->y,0);
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:83: PutSprite(enemy->plane,enemy1_right_pattern,enemy->x,enemy->y,0);
 	xor	a, a
 	push	af
 	inc	sp
@@ -2352,7 +2245,7 @@ _sys_render_update_enemy::
 	inc	sp
 	jp	00117$
 00102$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:83: PutSprite(enemy->plane,enemy1_right_walking_pattern,enemy->x,enemy->y,0);
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:85: PutSprite(enemy->plane,enemy1_right_walking_pattern,enemy->x,enemy->y,0);
 	xor	a, a
 	push	af
 	inc	sp
@@ -2369,7 +2262,7 @@ _sys_render_update_enemy::
 	inc	sp
 	jr	00117$
 00113$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:86: }else if (enemy->dir==7 && enemy->x<256 && enemy->x>0){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:88: }else if (enemy->dir==7 && enemy->x<256 && enemy->x>0){
 	ld	a, c
 	sub	a, #0x07
 	jr	NZ,00108$
@@ -2389,20 +2282,20 @@ _sys_render_update_enemy::
 	xor	a, #0x80
 00164$:
 	jp	P, 00108$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:87: if (enemy->andando){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:89: if (enemy->andando){
 	ld	l, -4 (ix)
 	ld	h, -3 (ix)
 	ld	a, (hl)
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:88: PutSprite(enemy->plane,enemy1_left_pattern,enemy->x,enemy->y,0);
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:90: PutSprite(enemy->plane,enemy1_left_pattern,enemy->x,enemy->y,0);
 	ld	d, e
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:81: PutSprite(enemy->plane,enemy1_right_pattern,enemy->x,enemy->y,0);
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:83: PutSprite(enemy->plane,enemy1_right_pattern,enemy->x,enemy->y,0);
 	ld	l, -2 (ix)
 	ld	h, -1 (ix)
 	ld	h, (hl)
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:87: if (enemy->andando){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:89: if (enemy->andando){
 	or	a, a
 	jr	Z,00105$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:88: PutSprite(enemy->plane,enemy1_left_pattern,enemy->x,enemy->y,0);
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:90: PutSprite(enemy->plane,enemy1_left_pattern,enemy->x,enemy->y,0);
 	xor	a, a
 	push	af
 	inc	sp
@@ -2419,7 +2312,7 @@ _sys_render_update_enemy::
 	inc	sp
 	jr	00117$
 00105$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:90: PutSprite(enemy->plane,enemy1_left_walking_pattern,enemy->x,enemy->y,0);
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:92: PutSprite(enemy->plane,enemy1_left_walking_pattern,enemy->x,enemy->y,0);
 	xor	a, a
 	push	af
 	inc	sp
@@ -2436,7 +2329,7 @@ _sys_render_update_enemy::
 	inc	sp
 	jr	00117$
 00108$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:93: PutSprite(enemy->plane,enemy1_left_walking_pattern,0,212,0);
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:95: PutSprite(enemy->plane,enemy1_left_walking_pattern,0,212,0);
 	xor	a, a
 	ld	d,a
 	ld	e,#0xd4
@@ -2452,93 +2345,29 @@ _sys_render_update_enemy::
 	pop	af
 	inc	sp
 00117$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:95: }
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:97: }
 	ld	sp, ix
 	pop	ix
 	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:97: void sys_render_update_shot(TEntity *shot){
-;	---------------------------------
-; Function sys_render_update_shot
-; ---------------------------------
-_sys_render_update_shot::
-	call	___sdcc_enter_ix
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:98: if (shot->plane!=0) PutSprite(shot->plane,shot_pattern,shot->x,shot->y,0);
-	ld	c, 4 (ix)
-	ld	b, 5 (ix)
-	ld	l, c
-	ld	h, b
-	ld	de, #0x0011
-	add	hl, de
-	ld	e, (hl)
-	ld	a, e
-	or	a, a
-	jr	Z,00103$
-	ld	l, c
-	ld	h, b
-	inc	hl
-	inc	hl
-	inc	hl
-	inc	hl
-	ld	d, (hl)
-	ld	l, c
-	ld	h, b
-	inc	hl
-	inc	hl
-	ld	b, (hl)
-	xor	a, a
-	push	af
-	inc	sp
-	push	de
-	inc	sp
-	push	bc
-	inc	sp
-	ld	d,#0x40
-	push	de
-	call	_PutSprite
-	pop	af
-	pop	af
-	inc	sp
-00103$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:99: }
-	pop	ix
-	ret
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:101: void sys_render_update_object(TEntity *object){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:104: void sys_render_update_object(TEntity *object){
 ;	---------------------------------
 ; Function sys_render_update_object
 ; ---------------------------------
 _sys_render_update_object::
 	call	___sdcc_enter_ix
-	dec	sp
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:103: if (object->x>0 && object->x<256 ){
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:105: PutSprite(object->plane,object_money_pattern,object->x,object->y,0);
 	ld	c, 4 (ix)
 	ld	b, 5 (ix)
 	ld	l, c
 	ld	h, b
-	inc	hl
-	inc	hl
+	ld	de, #0x0004
+	add	hl, de
 	ld	e, (hl)
-	inc	hl
-	ld	d, (hl)
-	xor	a, a
-	cp	a, e
-	sbc	a, d
-	jp	PO, 00116$
-	xor	a, #0x80
-00116$:
-	jp	P, 00104$
-	ld	a, d
-	xor	a, #0x80
-	sub	a, #0x81
-	jr	NC,00104$
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:104: PutSprite(object->plane,object_oxigen_pattern,object->x,object->y,0);
 	ld	l, c
 	ld	h, b
 	inc	hl
 	inc	hl
-	inc	hl
-	inc	hl
-	ld	a, (hl)
-	ld	-1 (ix), a
+	ld	d, (hl)
 	ld	l, c
 	ld	h, b
 	ld	bc, #0x0011
@@ -2547,9 +2376,12 @@ _sys_render_update_object::
 	xor	a, a
 	push	af
 	inc	sp
-	ld	d, -1 (ix)
+	ld	a, e
+	push	af
+	inc	sp
 	push	de
-	ld	a, #0x38
+	inc	sp
+	ld	a, #0x30
 	push	af
 	inc	sp
 	push	bc
@@ -2558,9 +2390,7 @@ _sys_render_update_object::
 	pop	af
 	pop	af
 	inc	sp
-00104$:
-;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:108: }
-	inc	sp
+;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/render.c:106: }
 	pop	ix
 	ret
 ;/Users/casa/Desktop/MSX1-MSX2-ZX-asm-basic-watchmen/MSX2/C/src/sys/ai.c:16: void sys_ai_init(){
@@ -2860,18 +2690,18 @@ _sys_ai_update_enemy_boss1::
 	ld	sp, ix
 	pop	ix
 	ret
-;src/man/game.c:57: void man_game_init(){
+;src/man/game.c:62: void man_game_init(){
 ;	---------------------------------
 ; Function man_game_init
 ; ---------------------------------
 _man_game_init::
-;src/man/game.c:59: sys_render_init();
+;src/man/game.c:64: sys_render_init();
 	call	_sys_render_init
-;src/man/game.c:62: load_file_into_buffer_with_structure("LOADER.S05");
+;src/man/game.c:67: load_file_into_buffer_with_structure("LOADER.S05");
 	ld	hl, #___str_1
 	push	hl
 	call	_load_file_into_buffer_with_structure
-;src/man/game.c:64: HMMC(&buffer[0], 0,0,256,212 ); 
+;src/man/game.c:69: HMMC(&buffer[0], 0,0,256,212 ); 
 	ld	hl, #0x00d4
 	ex	(sp),hl
 	ld	hl, #0x0100
@@ -2886,11 +2716,11 @@ _man_game_init::
 	ld	hl, #10
 	add	hl, sp
 	ld	sp, hl
-;src/man/game.c:67: load_file_into_buffer("tileset.s05");
+;src/man/game.c:72: load_file_into_buffer("tileset.s05");
 	ld	hl, #___str_2
 	push	hl
 	call	_load_file_into_buffer
-;src/man/game.c:71: HMMC(&buffer[0], 0,256,256,212); 
+;src/man/game.c:76: HMMC(&buffer[0], 0,256,256,212); 
 	ld	hl, #0x00d4
 	ex	(sp),hl
 	ld	hl, #0x0100
@@ -2905,46 +2735,46 @@ _man_game_init::
 	ld	hl, #10
 	add	hl, sp
 	ld	sp, hl
-;src/man/game.c:73: load_file_into_buffer("sprites.bin");
+;src/man/game.c:78: load_file_into_buffer("sprites.bin");
 	ld	hl, #___str_3
 	push	hl
 	call	_load_file_into_buffer
 	pop	af
-;src/man/game.c:75: man_game_copiarSpritesVRAM();
+;src/man/game.c:80: man_game_copiarSpritesVRAM();
 	call	_man_game_copiarSpritesVRAM
-;src/man/game.c:81: InitPSG();
+;src/man/game.c:86: InitPSG();
 	call	_InitPSG
-;src/man/game.c:82: man_game_cargar_buffer_musica();
+;src/man/game.c:87: man_game_cargar_buffer_musica();
 	call	_man_game_cargar_buffer_musica
-;src/man/game.c:84: PT3Init (songBuffer+99, 0);
+;src/man/game.c:89: PT3Init (songBuffer+99, 0);
 	xor	a, a
 	push	af
 	inc	sp
 	ld	hl, #(_songBuffer + 0x0063)
 	push	hl
 	call	_PT3Init
-;src/man/game.c:86: SetRealTimer(0);	
+;src/man/game.c:91: SetRealTimer(0);	
 	inc	sp
 	ld	hl,#0x0000
 	ex	(sp),hl
 	call	_SetRealTimer
 	pop	af
-;src/man/game.c:87: KeySound(0);
+;src/man/game.c:92: KeySound(0);
 	xor	a, a
 	push	af
 	inc	sp
 	call	_KeySound
 	inc	sp
-;src/man/game.c:89: actual_world=0;
+;src/man/game.c:94: actual_world=0;
 	ld	hl,#_actual_world + 0
 	ld	(hl), #0x00
-;src/man/game.c:93: world_change=1;
+;src/man/game.c:98: world_change=1;    
 	ld	hl,#_world_change + 0
 	ld	(hl), #0x01
-;src/man/game.c:95: player=sys_entity_create_player();
+;src/man/game.c:101: player=sys_entity_create_player();
 	call	_sys_entity_create_player
 	ld	(_player), hl
-;src/man/game.c:96: PutText(0,0, "Eres un vigilante y como siempre estas durmiendo te han robado.",0);
+;src/man/game.c:102: PutText(0,0, "Eres un vigilante y como siempre estas durmiendo te han robado.",0);
 	xor	a, a
 	push	af
 	inc	sp
@@ -2959,7 +2789,7 @@ _man_game_init::
 	pop	af
 	pop	af
 	inc	sp
-;src/man/game.c:97: PutText(0,16, "Atrapa a todos los ladr0nes y recoge las monedas que han ido perdiendo.",0);
+;src/man/game.c:103: PutText(0,16, "Atrapa a todos los ladr0nes y recoge las monedas que han ido perdiendo.",0);
 	xor	a, a
 	push	af
 	inc	sp
@@ -2974,7 +2804,7 @@ _man_game_init::
 	pop	af
 	pop	af
 	inc	sp
-;src/man/game.c:98: PutText(20,180, "Press any key to continue",0);
+;src/man/game.c:104: PutText(20,180, "Press any key to continue",0);
 	xor	a, a
 	push	af
 	inc	sp
@@ -2989,8 +2819,8 @@ _man_game_init::
 	pop	af
 	pop	af
 	inc	sp
-;src/man/game.c:99: WaitKey();
-;src/man/game.c:100: }
+;src/man/game.c:105: WaitKey();
+;src/man/game.c:106: }
 	jp	_WaitKey
 ___str_1:
 	.ascii "LOADER.S05"
@@ -3012,33 +2842,37 @@ ___str_5:
 ___str_6:
 	.ascii "Press any key to continue"
 	.db 0x00
-;src/man/game.c:102: void man_game_play(){
+;src/man/game.c:108: void man_game_play(){
 ;	---------------------------------
 ; Function man_game_play
 ; ---------------------------------
 _man_game_play::
-;src/man/game.c:103: do{
-00102$:
-;src/man/game.c:107: sys_physics_update(player);
+	call	___sdcc_enter_ix
+	dec	sp
+;src/man/game.c:109: do{
+00117$:
+;src/man/game.c:111: man_game_update();
+	call	_man_game_update
+;src/man/game.c:115: sys_physics_update(player);
 	ld	hl, (_player)
 	push	hl
 	call	_sys_physics_update
 	pop	af
-;src/man/game.c:108: sys_render_update(player);
+;src/man/game.c:116: sys_render_update(player);
 	ld	hl, (_player)
 	push	hl
 	call	_sys_render_update
 	pop	af
-;src/man/game.c:110: for (char i=0;i<sys_entity_get_num_enemies();++i){
-	ld	c, #0x00
-00106$:
-	push	bc
+;src/man/game.c:118: for (char i=0;i<sys_entity_get_num_enemies();++i){
+	xor	a, a
+	ld	-1 (ix), a
+00121$:
 	call	_sys_entity_get_num_enemies
-	pop	bc
-	ld	a, c
+	ld	a, -1 (ix)
 	sub	a, l
 	jr	NC,00101$
-;src/man/game.c:111: TEntity *enemy=&array_enemies[i];
+;src/man/game.c:119: TEntity *enemy=&array_enemies[i];
+	ld	c, -1 (ix)
 	ld	b, #0x00
 	ld	l, c
 	ld	h, b
@@ -3048,212 +2882,553 @@ _man_game_play::
 	add	hl, hl
 	add	hl, bc
 	add	hl, hl
-	ld	de, (_array_enemies)
+	add	hl, bc
+	ex	de, hl
+	ld	hl, (_array_enemies)
 	add	hl, de
-;src/man/game.c:113: sys_ai_update(enemy);
+;src/man/game.c:121: sys_ai_update(enemy);
 	push	hl
-	push	bc
 	push	hl
 	call	_sys_ai_update
 	pop	af
-	pop	bc
-	pop	hl
-;src/man/game.c:114: sys_render_update(enemy);
-	push	bc
+	call	_sys_render_update
+	pop	af
+;src/man/game.c:118: for (char i=0;i<sys_entity_get_num_enemies();++i){
+	inc	-1 (ix)
+	jr	00121$
+00101$:
+;src/man/game.c:125: for (char i=0;i<sys_entity_get_num_objects();++i){
+	xor	a, a
+	ld	-1 (ix), a
+00124$:
+	call	_sys_entity_get_num_objects
+	ld	a, -1 (ix)
+	sub	a, l
+	jr	NC,00104$
+;src/man/game.c:126: TEntity *object=&array_objects[i];
+	ld	c, -1 (ix)
+	ld	b, #0x00
+	ld	l, c
+	ld	h, b
+	add	hl, hl
+	add	hl, hl
+	add	hl, bc
+	add	hl, hl
+	add	hl, bc
+	add	hl, hl
+	add	hl, bc
+	ex	de, hl
+	ld	hl, (_array_objects)
+	add	hl, de
+;src/man/game.c:127: sys_render_update(object);
+	push	hl
 	push	hl
 	call	_sys_render_update
 	pop	af
-	pop	bc
-;src/man/game.c:110: for (char i=0;i<sys_entity_get_num_enemies();++i){
-	inc	c
-	jr	00106$
-00101$:
-;src/man/game.c:118: man_game_update();
-	call	_man_game_update
-;src/man/game.c:122: wait();
+	ld	hl, (_player)
+	push	hl
+	call	_sys_collider_entity1_collider_entity2
+	pop	af
+	pop	af
+	ld	a, l
+	or	a, a
+	jr	Z,00125$
+;src/man/game.c:131: player->points+=10;
+	ld	hl, (_player)
+	ld	bc, #0x0012
+	add	hl, bc
+	ld	a, (hl)
+	inc	hl
+	ld	c, (hl)
+	dec	hl
+	add	a, #0x0a
+	ld	e, a
+	ld	a, c
+	adc	a, #0x00
+	ld	(hl), e
+	inc	hl
+	ld	(hl), a
+;src/man/game.c:132: world_money-=1;
+	ld	a,(#_world_money + 0)
+	ld	hl, #_world_money
+	add	a, #0xff
+	ld	(hl), a
+;src/man/game.c:133: pintar_HUD();
+	call	_pintar_HUD
+;src/man/game.c:134: Beep();
+	call	_Beep
+;src/man/game.c:135: sys_entity_erase_object(i);
+	ld	a, -1 (ix)
+	push	af
+	inc	sp
+	call	_sys_entity_erase_object
+	inc	sp
+00125$:
+;src/man/game.c:125: for (char i=0;i<sys_entity_get_num_objects();++i){
+	inc	-1 (ix)
+	jr	00124$
+00104$:
+;src/man/game.c:144: if (world_money==0){
+	ld	a,(#_world_money + 0)
+	or	a, a
+	jp	NZ, 00116$
+;src/man/game.c:145: if (time % 3==0)HMMM(8*8,256,30*8,24*8,16,16);
+	ld	hl, #0x0003
+	push	hl
+	ld	hl, (_time)
+	push	hl
+	call	__moduint
+	pop	af
+	pop	af
+	ld	a, h
+	or	a, l
+	jr	NZ,00108$
+	ld	hl, #0x0010
+	push	hl
+	ld	l, #0x10
+	push	hl
+	ld	l, #0xc0
+	push	hl
+	ld	l, #0xf0
+	push	hl
+	ld	hl, #0x0100
+	push	hl
+	ld	hl, #0x0040
+	push	hl
+	call	_HMMM
+	ld	hl, #12
+	add	hl, sp
+	ld	sp, hl
+	jr	00109$
+00108$:
+;src/man/game.c:146: else if (enabled_world_change==0)HMMM(8*8,256+100,30*8,24*8,16,16);
+	ld	a,(#_enabled_world_change + 0)
+	or	a, a
+	jr	NZ,00109$
+	ld	hl, #0x0010
+	push	hl
+	ld	l, #0x10
+	push	hl
+	ld	l, #0xc0
+	push	hl
+	ld	l, #0xf0
+	push	hl
+	ld	hl, #0x0164
+	push	hl
+	ld	hl, #0x0040
+	push	hl
+	call	_HMMM
+	ld	hl, #12
+	add	hl, sp
+	ld	sp, hl
+00109$:
+;src/man/game.c:147: if (sys_collider_get_tile_array(player)==tile_phone1 || sys_collider_get_tile_array(player)==tile_phone2){
+	ld	hl, (_player)
+	push	hl
+	call	_sys_collider_get_tile_array
+	pop	af
+	ld	a, l
+	sub	a, #0x28
+	or	a, h
+	jr	Z,00110$
+	ld	hl, (_player)
+	push	hl
+	call	_sys_collider_get_tile_array
+	pop	af
+	ld	a, l
+	sub	a, #0x24
+	or	a, h
+	jr	NZ,00111$
+00110$:
+;src/man/game.c:148: enabled_world_change=1;
+	ld	hl,#_enabled_world_change + 0
+	ld	(hl), #0x01
+00111$:
+;src/man/game.c:150: if (enabled_world_change==1)man_game_check_change_world();
+	ld	a,(#_enabled_world_change + 0)
+	dec	a
+	jr	NZ,00116$
+	call	_man_game_check_change_world
+00116$:
+;src/man/game.c:154: time=RealTimer();
+	call	_RealTimer
+	ld	(_time), hl
+;src/man/game.c:155: PutText(200,192,Itoa(time/60,"      ",10),0);
+	ld	hl, #0x003c
+	push	hl
+	ld	hl, (_time)
+	push	hl
+	call	__divuint
+	pop	af
+	pop	af
+	ld	bc, #0x000a
+	push	bc
+	ld	bc, #___str_7
+	push	bc
+	push	hl
+	call	_Itoa
+	pop	af
+	pop	af
+	pop	af
+	xor	a, a
+	push	af
+	inc	sp
+	push	hl
+	ld	hl, #0x00c0
+	push	hl
+	ld	l, #0xc8
+	push	hl
+	call	_PutText
+	pop	af
+	pop	af
+	pop	af
+	inc	sp
+;src/man/game.c:160: wait();
 	call	_wait
-;src/man/game.c:124: }while(1);
-;src/man/game.c:125: }
-	jr	00102$
-;src/man/game.c:127: void man_game_update(){
+;src/man/game.c:161: }while(1);
+	jp	00117$
+;src/man/game.c:162: }
+	inc	sp
+	pop	ix
+	ret
+___str_7:
+	.ascii "      "
+	.db 0x00
+;src/man/game.c:164: void man_game_update(){
 ;	---------------------------------
 ; Function man_game_update
 ; ---------------------------------
 _man_game_update::
-;src/man/game.c:128: if (world_change==1){
-	ld	iy, #_world_change
-	ld	a, 0 (iy)
+	call	___sdcc_enter_ix
+	push	af
+	push	af
+	push	af
+;src/man/game.c:165: if (world_change==1){
+	ld	a,(#_world_change + 0)
 	dec	a
-	jp	NZ,_man_game_check_change_world
-;src/man/game.c:129: Cls();
+	jp	NZ,00119$
+;src/man/game.c:166: Cls();
 	call	_Cls
-;src/man/game.c:130: if (actual_world==0){
+;src/man/game.c:167: sys_entity_erase_all_objects();
+	call	_sys_entity_erase_all_objects
+;src/man/game.c:168: sys_entity_erase_all_enemies();
+	call	_sys_entity_erase_all_enemies
+;src/man/game.c:170: if (actual_world==0){
 	ld	a,(#_actual_world + 0)
 	or	a, a
-	jp	NZ, 00104$
-;src/man/game.c:132: load_file_into_buffer_with_structure("world0.bin");
-	ld	hl, #___str_7
+	jr	NZ,00107$
+;src/man/game.c:172: load_file_into_buffer_with_structure("world0.bin");
+	ld	hl, #___str_8
 	push	hl
 	call	_load_file_into_buffer_with_structure
 	pop	af
-;src/man/game.c:135: player->x=8*2;
+;src/man/game.c:174: world_money=6;
+	ld	hl,#_world_money + 0
+	ld	(hl), #0x06
+;src/man/game.c:177: player->x=1*8;
 	ld	hl, (_player)
 	inc	hl
 	inc	hl
-	ld	(hl), #0x10
+	ld	(hl), #0x08
 	inc	hl
 	ld	(hl), #0x00
-;src/man/game.c:136: player->y=8*19;
+;src/man/game.c:178: player->y=19*8;
 	ld	hl, (_player)
 	ld	bc, #0x0004
 	add	hl, bc
 	ld	(hl), #0x98
 	inc	hl
 	ld	(hl), #0x00
-;src/man/game.c:138: TEntity *enemy1=sys_entity_create_enemy1();
-	call	_sys_entity_create_enemy1
-;src/man/game.c:139: TEntity *enemy2=sys_entity_create_enemy1();
-	call	_sys_entity_create_enemy1
-	ld	c, l
-	ld	b, h
-;src/man/game.c:140: enemy2->plane=enemy1_plane+sys_entity_get_num_enemies();
-	ld	hl, #0x0011
-	add	hl, bc
-	push	hl
-	push	bc
-	call	_sys_entity_get_num_enemies
-	ld	a, l
-	pop	bc
-	pop	hl
-	add	a, #0x05
-	ld	(hl), a
-;src/man/game.c:141: enemy2->x=4*8;
-	ld	l, c
-	ld	h, b
-	inc	hl
-	inc	hl
-	ld	(hl), #0x20
-	inc	hl
-	ld	(hl), #0x00
-;src/man/game.c:142: enemy2->y=9*8;
-	ld	hl, #0x0004
-	add	hl, bc
-	ld	(hl), #0x48
-	inc	hl
-	ld	(hl), #0x00
-;src/man/game.c:143: enemy2->dir=7;
-	ld	hl, #0x000c
-	add	hl, bc
-	ld	(hl), #0x07
-;src/man/game.c:144: TEntity *enemy3=sys_entity_create_enemy1();
-	call	_sys_entity_create_enemy1
-	ld	c, l
-	ld	b, h
-;src/man/game.c:145: enemy3->plane=enemy1_plane+sys_entity_get_num_enemies();
-	ld	hl, #0x0011
-	add	hl, bc
-	push	hl
-	push	bc
-	call	_sys_entity_get_num_enemies
-	ld	a, l
-	pop	bc
-	pop	hl
-	add	a, #0x05
-	ld	(hl), a
-;src/man/game.c:146: enemy3->x=6*8;
-	ld	l, c
-	ld	h, b
-	inc	hl
-	inc	hl
-	ld	(hl), #0x30
-	inc	hl
-	ld	(hl), #0x00
-;src/man/game.c:147: enemy3->y=15*8;
-	ld	hl, #0x0004
-	add	hl, bc
-	ld	(hl), #0x78
-	inc	hl
-	ld	(hl), #0x00
-;src/man/game.c:148: TEntity *enemy4=sys_entity_create_enemy1();
-	call	_sys_entity_create_enemy1
-	ld	c, l
-	ld	b, h
-;src/man/game.c:149: enemy4->plane=enemy1_plane+sys_entity_get_num_enemies();
-	ld	hl, #0x0011
-	add	hl, bc
-	push	hl
-	push	bc
-	call	_sys_entity_get_num_enemies
-	ld	a, l
-	pop	bc
-	pop	hl
-	add	a, #0x05
-	ld	(hl), a
-;src/man/game.c:150: enemy4->x=20*8;
-	ld	l, c
-	ld	h, b
-	inc	hl
-	inc	hl
-	ld	(hl), #0xa0
-	inc	hl
-	ld	(hl), #0x00
-;src/man/game.c:151: enemy4->y=20*8;
-	ld	hl, #0x0004
-	add	hl, bc
-	ld	(hl), #0xa0
-	inc	hl
-	ld	(hl), #0x00
-	jr	00105$
-00104$:
-;src/man/game.c:155: }else if (actual_world==1){
+	jr	00126$
+00107$:
+;src/man/game.c:180: }else if (actual_world==1){
 	ld	a,(#_actual_world + 0)
 	dec	a
-	jr	NZ,00105$
-;src/man/game.c:156: load_file_into_buffer_with_structure("world1.bin");
-	ld	hl, #___str_8
+	jr	NZ,00104$
+;src/man/game.c:181: load_file_into_buffer_with_structure("world1.bin");
+	ld	hl, #___str_9
 	push	hl
 	call	_load_file_into_buffer_with_structure
 	pop	af
-;src/man/game.c:157: player->x=8*2;
+;src/man/game.c:182: player->x=14*8;
 	ld	hl, (_player)
 	inc	hl
 	inc	hl
-	ld	(hl), #0x10
+	ld	(hl), #0x70
 	inc	hl
 	ld	(hl), #0x00
-;src/man/game.c:158: player->y=8*20;
+;src/man/game.c:183: player->y=20*8;
 	ld	hl, (_player)
 	ld	bc, #0x0004
 	add	hl, bc
 	ld	(hl), #0xa0
 	inc	hl
 	ld	(hl), #0x00
-00105$:
-;src/man/game.c:160: man_game_pintarMapa();
+;src/man/game.c:184: world_money=6;
+	ld	hl,#_world_money + 0
+	ld	(hl), #0x06
+	jr	00126$
+00104$:
+;src/man/game.c:185: }else if (actual_world==2){
+	ld	a,(#_actual_world + 0)
+	sub	a, #0x02
+	jr	NZ,00126$
+;src/man/game.c:186: player->x=14*8;
+	ld	hl, (_player)
+	inc	hl
+	inc	hl
+	ld	(hl), #0x70
+	inc	hl
+	ld	(hl), #0x00
+;src/man/game.c:187: player->y=20*8;
+	ld	hl, (_player)
+	ld	bc, #0x0004
+	add	hl, bc
+	ld	(hl), #0xa0
+	inc	hl
+	ld	(hl), #0x00
+;src/man/game.c:188: world_money=20;
+	ld	hl,#_world_money + 0
+	ld	(hl), #0x14
+;src/man/game.c:195: for (int i=0;i<MAX_enemies;i++){ 
+00126$:
+	ld	bc, #0x0000
+00114$:
+	ld	a, c
+	sub	a, #0x0a
+	ld	a, b
+	rla
+	ccf
+	rra
+	sbc	a, #0x80
+	jp	NC, 00109$
+;src/man/game.c:196: TCoordinate_enemy* coordinate_enemy=&world_enemies[actual_world][i];
+	ld	de, (_actual_world)
+	ld	d, #0x00
+	ld	l, e
+	ld	h, d
+	add	hl, hl
+	add	hl, de
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, de
+	add	hl, hl
+	ex	de, hl
+	ld	hl, #_world_enemies
+	add	hl, de
+	ex	de, hl
+	ld	l, c
+	ld	h, b
+	add	hl, hl
+	add	hl, hl
+	add	hl, bc
+	add	hl, de
+	inc	sp
+	inc	sp
+	push	hl
+;src/man/game.c:197: TEntity *enemy=sys_entity_create_enemy1();
+	push	bc
+	call	_sys_entity_create_enemy1
+	pop	bc
+	ex	de,hl
+;src/man/game.c:198: enemy->x=coordinate_enemy->x;
+	ld	hl, #0x0002
+	add	hl, de
+	ld	-4 (ix), l
+	ld	-3 (ix), h
+	pop	hl
+	push	hl
+	ld	a, (hl)
+	ld	-2 (ix), a
+	inc	hl
+	ld	a, (hl)
+	ld	-1 (ix), a
+	ld	l, -4 (ix)
+	ld	h, -3 (ix)
+	ld	a, -2 (ix)
+	ld	(hl), a
+	inc	hl
+	ld	a, -1 (ix)
+	ld	(hl), a
+;src/man/game.c:199: enemy->y=coordinate_enemy->y;
+	ld	hl, #0x0004
+	add	hl, de
+	ld	-4 (ix), l
+	ld	-3 (ix), h
+	pop	hl
+	push	hl
+	inc	hl
+	inc	hl
+	ld	a, (hl)
+	ld	-2 (ix), a
+	inc	hl
+	ld	a, (hl)
+	ld	-1 (ix), a
+	ld	l, -4 (ix)
+	ld	h, -3 (ix)
+	ld	a, -2 (ix)
+	ld	(hl), a
+	inc	hl
+	ld	a, -1 (ix)
+	ld	(hl), a
+;src/man/game.c:200: enemy->type=coordinate_enemy->type;
+	pop	hl
+	push	hl
+	inc	hl
+	inc	hl
+	inc	hl
+	inc	hl
+	ld	a, (hl)
+	ld	(de), a
+;src/man/game.c:202: enemy->plane=enemy1_plane+sys_entity_get_num_enemies();
+	ld	hl, #0x0011
+	add	hl, de
+	push	hl
+	push	bc
+	call	_sys_entity_get_num_enemies
+	ld	a, l
+	pop	bc
+	pop	hl
+	add	a, #0x05
+	ld	(hl), a
+;src/man/game.c:195: for (int i=0;i<MAX_enemies;i++){ 
+	inc	bc
+	jp	00114$
+00109$:
+;src/man/game.c:205: for (int i=0; i<MAX_objects;i++){
+	xor	a, a
+	ld	-2 (ix), a
+	ld	-1 (ix), a
+00117$:
+	ld	a, -2 (ix)
+	sub	a, #0x0a
+	ld	a, -1 (ix)
+	rla
+	ccf
+	rra
+	sbc	a, #0x80
+	jr	NC,00110$
+;src/man/game.c:206: TCoordinate_object* coordinate_object=&world_objects[actual_world][i];
+	ld	bc, (_actual_world)
+	ld	b, #0x00
+	ld	l, c
+	ld	h, b
+	add	hl, hl
+	add	hl, bc
+	add	hl, hl
+	add	hl, hl
+	add	hl, hl
+	add	hl, bc
+	add	hl, hl
+	ex	de, hl
+	ld	hl, #_world_objects
+	add	hl, de
+	ex	de, hl
+	ld	c, -2 (ix)
+	ld	b, -1 (ix)
+	ld	l, c
+	ld	h, b
+	add	hl, hl
+	add	hl, hl
+	add	hl, bc
+	add	hl, de
+	inc	sp
+	inc	sp
+	push	hl
+;src/man/game.c:207: TEntity *object=sys_entity_create_object();
+	call	_sys_entity_create_object
+	ld	c, l
+	ld	b, h
+;src/man/game.c:208: object->y=coordinate_object->y;
+	ld	hl, #0x0004
+	add	hl, bc
+	ld	-4 (ix), l
+	ld	-3 (ix), h
+	pop	hl
+	push	hl
+	inc	hl
+	inc	hl
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	ld	l, -4 (ix)
+	ld	h, -3 (ix)
+	ld	(hl), e
+	inc	hl
+	ld	(hl), d
+;src/man/game.c:209: object->x=coordinate_object->x;
+	ld	hl, #0x0002
+	add	hl, bc
+	ld	-4 (ix), l
+	ld	-3 (ix), h
+	pop	hl
+	push	hl
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	ld	l, -4 (ix)
+	ld	h, -3 (ix)
+	ld	(hl), e
+	inc	hl
+	ld	(hl), d
+;src/man/game.c:210: object->type=coordinate_object->type;
+	pop	hl
+	push	hl
+	ld	de, #0x0004
+	add	hl, de
+	ld	a, (hl)
+	ld	(bc), a
+;src/man/game.c:211: object->plane=object_money+sys_entity_get_num_objects();
+	ld	hl, #0x0011
+	add	hl, bc
+	push	hl
+	call	_sys_entity_get_num_objects
+	ld	a, l
+	pop	hl
+	add	a, #0x0f
+	ld	(hl), a
+;src/man/game.c:205: for (int i=0; i<MAX_objects;i++){
+	inc	-2 (ix)
+	jp	NZ,00117$
+	inc	-1 (ix)
+	jp	00117$
+00110$:
+;src/man/game.c:216: man_game_pintarMapa();
 	call	_man_game_pintarMapa
-;src/man/game.c:161: array_enemies=sys_entity_get_array_structs_enemies();
+;src/man/game.c:217: array_enemies=sys_entity_get_array_structs_enemies();
 	call	_sys_entity_get_array_structs_enemies
 	ld	(_array_enemies), hl
-;src/man/game.c:162: pintar_HUD();
+;src/man/game.c:218: array_objects=sys_entity_get_array_structs_objects();
+	call	_sys_entity_get_array_structs_objects
+	ld	(_array_objects), hl
+;src/man/game.c:219: pintar_HUD();
 	call	_pintar_HUD
-;src/man/game.c:163: world_change=0;
-	ld	iy, #_world_change
-	ld	0 (iy), #0x00
-;src/man/game.c:165: man_game_check_change_world();
-;src/man/game.c:166: }
-	jp	_man_game_check_change_world
-___str_7:
+;src/man/game.c:220: SpriteOn();
+	call	_SpriteOn
+;src/man/game.c:221: world_change=0;
+	ld	hl,#_world_change + 0
+	ld	(hl), #0x00
+;src/man/game.c:223: enabled_world_change=0;
+	ld	hl,#_enabled_world_change + 0
+	ld	(hl), #0x00
+00119$:
+;src/man/game.c:228: }
+	ld	sp, ix
+	pop	ix
+	ret
+___str_8:
 	.ascii "world0.bin"
 	.db 0x00
-___str_8:
+___str_9:
 	.ascii "world1.bin"
 	.db 0x00
-;src/man/game.c:167: void man_game_check_change_world(){
+;src/man/game.c:229: void man_game_check_change_world(){
 ;	---------------------------------
 ; Function man_game_check_change_world
 ; ---------------------------------
 _man_game_check_change_world::
-;src/man/game.c:168: if (sys_collider_get_tile_array(player)==tile_end_level1 || sys_collider_get_tile_array(player)==tile_end_level2 ){
+;src/man/game.c:230: if (sys_collider_get_tile_array(player)==tile_end_level1 || sys_collider_get_tile_array(player)==tile_end_level2 ){
 	ld	hl, (_player)
 	push	hl
 	call	_sys_collider_get_tile_array
@@ -3271,16 +3446,16 @@ _man_game_check_change_world::
 	or	a, h
 	ret	NZ
 00101$:
-;src/man/game.c:169: world_change=1;
+;src/man/game.c:231: world_change=1;
 	ld	iy, #_world_change
 	ld	0 (iy), #0x01
-;src/man/game.c:170: actual_world+=1;
+;src/man/game.c:232: actual_world+=1;
 	ld	a,(#_actual_world + 0)
 	inc	a
 	ld	(_actual_world+0), a
-;src/man/game.c:172: }
+;src/man/game.c:234: }
 	ret
-;src/man/game.c:174: void man_game_pintarMapa(){
+;src/man/game.c:236: void man_game_pintarMapa(){
 ;	---------------------------------
 ; Function man_game_pintarMapa
 ; ---------------------------------
@@ -3289,13 +3464,13 @@ _man_game_pintarMapa::
 	ld	hl, #-9
 	add	hl, sp
 	ld	sp, hl
-;src/man/game.c:179: for (char f=0; f<numeroFilas;f++){
+;src/man/game.c:241: for (char f=0; f<numeroFilas;f++){
 	ld	c, #0x00
 00107$:
 	ld	a, c
 	sub	a, #0x17
 	jp	NC, 00109$
-;src/man/game.c:180: for (char c=0; c<numeroColumnas;c++){
+;src/man/game.c:242: for (char c=0; c<numeroColumnas;c++){
 	ld	b, #0x00
 	ld	l, c
 	ld	h, b
@@ -3311,7 +3486,7 @@ _man_game_pintarMapa::
 	ld	a, -1 (ix)
 	sub	a, #0x20
 	jp	NC, 00108$
-;src/man/game.c:182: columnaEnTileset=(((buffer[c+(f*numeroColumnas)]/32)+1)*32)-(buffer[c+(f*numeroColumnas)]);
+;src/man/game.c:244: columnaEnTileset=(((buffer[c+(f*numeroColumnas)]/32)+1)*32)-(buffer[c+(f*numeroColumnas)]);
 	ld	e, -1 (ix)
 	ld	d, #0x00
 	pop	hl
@@ -3354,7 +3529,7 @@ _man_game_pintarMapa::
 	rrca
 	and	a, #0xe0
 	sub	a, b
-;src/man/game.c:183: resultado=(32-columnaEnTileset)*8;
+;src/man/game.c:245: resultado=(32-columnaEnTileset)*8;
 	ld	b, a
 	ld	h, #0x00
 	ld	a, #0x20
@@ -3367,7 +3542,7 @@ _man_game_pintarMapa::
 	add	hl, hl
 	add	hl, hl
 	ld	(_resultado), hl
-;src/man/game.c:184: HMMM(resultado,(buffer[c+(f*numeroColumnas)]/32)*8+256, c*8,f*8,8,8);
+;src/man/game.c:246: HMMM(resultado,(buffer[c+(f*numeroColumnas)]/32)*8+256, c*8,f*8,8,8);
 	ld	l, c
 	ld	h, #0x00
 	add	hl, hl
@@ -3428,19 +3603,19 @@ _man_game_pintarMapa::
 	add	hl, sp
 	ld	sp, hl
 	pop	bc
-;src/man/game.c:180: for (char c=0; c<numeroColumnas;c++){
+;src/man/game.c:242: for (char c=0; c<numeroColumnas;c++){
 	inc	-1 (ix)
 	jp	00104$
 00108$:
-;src/man/game.c:179: for (char f=0; f<numeroFilas;f++){
+;src/man/game.c:241: for (char f=0; f<numeroFilas;f++){
 	inc	c
 	jp	00107$
 00109$:
-;src/man/game.c:187: }
+;src/man/game.c:249: }
 	ld	sp, ix
 	pop	ix
 	ret
-;src/man/game.c:189: void man_game_showBuffer(){
+;src/man/game.c:251: void man_game_showBuffer(){
 ;	---------------------------------
 ; Function man_game_showBuffer
 ; ---------------------------------
@@ -3449,27 +3624,27 @@ _man_game_showBuffer::
 	push	af
 	push	af
 	push	af
-;src/man/game.c:190: Cls();
+;src/man/game.c:252: Cls();
 	call	_Cls
-;src/man/game.c:191: Screen(1);
+;src/man/game.c:253: Screen(1);
 	ld	a, #0x01
 	push	af
 	inc	sp
 	call	_Screen
 	inc	sp
-;src/man/game.c:193: printf("%d",&buffer[0]);
+;src/man/game.c:255: printf("%d",&buffer[0]);
 	ld	hl, #_buffer
 	push	hl
-	ld	hl, #___str_9
+	ld	hl, #___str_10
 	push	hl
 	call	_printf
 	pop	af
-;src/man/game.c:194: printf("\r\n");
-	ld	hl, #___str_11
+;src/man/game.c:256: printf("\r\n");
+	ld	hl, #___str_12
 	ex	(sp),hl
 	call	_puts
 	pop	af
-;src/man/game.c:198: for (int f=4; f<numeroFilas;f++){
+;src/man/game.c:260: for (int f=4; f<numeroFilas;f++){
 	ld	bc, #0x0004
 00107$:
 	ld	a, c
@@ -3480,16 +3655,16 @@ _man_game_showBuffer::
 	rra
 	sbc	a, #0x80
 	jp	NC, 00109$
-;src/man/game.c:199: printf("\r\nFila %d\r\n  ",f);
+;src/man/game.c:261: printf("\r\nFila %d\r\n  ",f);
 	push	bc
 	push	bc
-	ld	hl, #___str_12
+	ld	hl, #___str_13
 	push	hl
 	call	_printf
 	pop	af
 	pop	af
 	pop	bc
-;src/man/game.c:200: for (int c=0; c<numeroColumnas;c++){
+;src/man/game.c:262: for (int c=0; c<numeroColumnas;c++){
 	ld	l, c
 	ld	h, b
 	add	hl, hl
@@ -3508,7 +3683,7 @@ _man_game_showBuffer::
 	rra
 	sbc	a, #0x80
 	jp	NC, 00108$
-;src/man/game.c:201: columnaEnTileset=(((buffer[c+(f*numeroColumnas)]/32)+1)*32)-(buffer[c+(f*numeroColumnas)]);
+;src/man/game.c:263: columnaEnTileset=(((buffer[c+(f*numeroColumnas)]/32)+1)*32)-(buffer[c+(f*numeroColumnas)]);
 	pop	hl
 	push	hl
 	add	hl, de
@@ -3553,7 +3728,7 @@ _man_game_showBuffer::
 	ld	a, h
 	sbc	a, -1 (ix)
 	ld	h, a
-;src/man/game.c:202: resultado=(32-columnaEnTileset)*8;
+;src/man/game.c:264: resultado=(32-columnaEnTileset)*8;
 	ld	a, #0x20
 	sub	a, l
 	ld	l, a
@@ -3564,7 +3739,7 @@ _man_game_showBuffer::
 	add	hl, hl
 	add	hl, hl
 	ld	(_resultado), hl
-;src/man/game.c:203: printf("%d ",((buffer[c+(f*numeroColumnas)]/32)+1)*32);
+;src/man/game.c:265: printf("%d ",((buffer[c+(f*numeroColumnas)]/32)+1)*32);
 	ld	l, -4 (ix)
 	ld	h, -3 (ix)
 	ld	l, (hl)
@@ -3597,32 +3772,32 @@ _man_game_showBuffer::
 	push	bc
 	push	de
 	push	hl
-	ld	hl, #___str_13
+	ld	hl, #___str_14
 	push	hl
 	call	_printf
 	pop	af
 	pop	af
 	pop	de
 	pop	bc
-;src/man/game.c:200: for (int c=0; c<numeroColumnas;c++){
+;src/man/game.c:262: for (int c=0; c<numeroColumnas;c++){
 	inc	de
 	jp	00104$
 00108$:
-;src/man/game.c:198: for (int f=4; f<numeroFilas;f++){
+;src/man/game.c:260: for (int f=4; f<numeroFilas;f++){
 	inc	bc
 	jp	00107$
 00109$:
-;src/man/game.c:207: }
+;src/man/game.c:269: }
 	ld	sp, ix
 	pop	ix
 	ret
-___str_9:
+___str_10:
 	.ascii "%d"
 	.db 0x00
-___str_11:
+___str_12:
 	.db 0x0d
 	.db 0x00
-___str_12:
+___str_13:
 	.db 0x0d
 	.db 0x0a
 	.ascii "Fila %d"
@@ -3630,10 +3805,10 @@ ___str_12:
 	.db 0x0a
 	.ascii "  "
 	.db 0x00
-___str_13:
+___str_14:
 	.ascii "%d "
 	.db 0x00
-;src/man/game.c:208: void man_game_copiarSpritesVRAM(){
+;src/man/game.c:270: void man_game_copiarSpritesVRAM(){
 ;	---------------------------------
 ; Function man_game_copiarSpritesVRAM
 ; ---------------------------------
@@ -3641,7 +3816,7 @@ _man_game_copiarSpritesVRAM::
 	call	___sdcc_enter_ix
 	push	af
 	dec	sp
-;src/man/game.c:211: for (char i=0; i<13; i++) {		
+;src/man/game.c:273: for (char i=0; i<14; i++) {		
 	ld	bc, #0x0000
 	ld	hl, #0x0000
 	ex	(sp), hl
@@ -3649,9 +3824,9 @@ _man_game_copiarSpritesVRAM::
 	ld	-1 (ix), a
 00103$:
 	ld	a, -1 (ix)
-	sub	a, #0x0d
+	sub	a, #0x0e
 	jr	NC,00105$
-;src/man/game.c:215: SetSpritePattern(sprite, &SPRITE_DATA[siguiente],32);
+;src/man/game.c:277: SetSpritePattern(sprite, &SPRITE_DATA[siguiente],32);
 	ld	hl, #_SPRITE_DATA
 	add	hl, bc
 	ld	d, -3 (ix)
@@ -3666,7 +3841,7 @@ _man_game_copiarSpritesVRAM::
 	pop	af
 	pop	af
 	pop	bc
-;src/man/game.c:216: SC5SpriteColors(i, &COLOR_DATA[0]);
+;src/man/game.c:278: SC5SpriteColors(i, &COLOR_DATA[0]);
 	ld	e, -1 (ix)
 	ld	d, #0x00
 	push	bc
@@ -3677,54 +3852,54 @@ _man_game_copiarSpritesVRAM::
 	pop	af
 	pop	af
 	pop	bc
-;src/man/game.c:217: siguiente += 32;
+;src/man/game.c:279: siguiente += 32;
 	ld	hl, #0x0020
 	add	hl, bc
 	ld	c, l
 	ld	b, h
-;src/man/game.c:218: sprite+=4;
+;src/man/game.c:280: sprite+=4;
 	ld	a, -3 (ix)
 	add	a, #0x04
 	ld	-3 (ix), a
 	jr	NC,00118$
 	inc	-2 (ix)
 00118$:
-;src/man/game.c:211: for (char i=0; i<13; i++) {		
+;src/man/game.c:273: for (char i=0; i<14; i++) {		
 	inc	-1 (ix)
 	jr	00103$
 00105$:
-;src/man/game.c:224: }
+;src/man/game.c:286: }
 	ld	sp, ix
 	pop	ix
 	ret
-;src/man/game.c:226: void wait(){
+;src/man/game.c:288: void wait(){
 ;	---------------------------------
 ; Function wait
 ; ---------------------------------
 _wait::
-;src/man/game.c:231: __endasm;
+;src/man/game.c:293: __endasm;
 	halt
 	halt
 	halt
-;src/man/game.c:232: }
+;src/man/game.c:294: }
 	ret
-;src/man/game.c:233: void man_game_cargar_buffer_musica(){
+;src/man/game.c:295: void man_game_cargar_buffer_musica(){
 ;	---------------------------------
 ; Function man_game_cargar_buffer_musica
 ; ---------------------------------
 _man_game_cargar_buffer_musica::
-;src/man/game.c:234: enter_name_and_extension_in_structure( &TFileMusic, &fileNameSong[0]);
+;src/man/game.c:296: enter_name_and_extension_in_structure( &TFileMusic, &fileNameSong[0]);
 	ld	hl, #_fileNameSong
 	push	hl
 	ld	hl, #_TFileMusic
 	push	hl
 	call	_enter_name_and_extension_in_structure
 	pop	af
-;src/man/game.c:235: fcb_open( &TFileMusic );
+;src/man/game.c:297: fcb_open( &TFileMusic );
 	ld	hl, #_TFileMusic
 	ex	(sp),hl
 	call	_fcb_open
-;src/man/game.c:236: fcb_read( &TFileMusic, &songBuffer[0], SONG_BUFFER_TAM );  
+;src/man/game.c:298: fcb_read( &TFileMusic, &songBuffer[0], SONG_BUFFER_TAM );  
 	ld	hl, #0x0108
 	ex	(sp),hl
 	ld	hl, #_songBuffer
@@ -3734,48 +3909,51 @@ _man_game_cargar_buffer_musica::
 	call	_fcb_read
 	pop	af
 	pop	af
-;src/man/game.c:237: fcb_close( &TFileMusic );
+;src/man/game.c:299: fcb_close( &TFileMusic );
 	ld	hl, #_TFileMusic
 	ex	(sp),hl
 	call	_fcb_close
 	pop	af
-;src/man/game.c:238: }
+;src/man/game.c:300: }
 	ret
-;src/man/game.c:239: void man_game_reproducir_musica_y_efectos(){
+;src/man/game.c:301: void man_game_reproducir_musica_y_efectos(){
 ;	---------------------------------
 ; Function man_game_reproducir_musica_y_efectos
 ; ---------------------------------
 _man_game_reproducir_musica_y_efectos::
-;src/man/game.c:241: DisableInterupt();
+;src/man/game.c:303: DisableInterupt();
 	di;	
-;src/man/game.c:242: PT3Rout();
+;src/man/game.c:304: PT3Rout();
 	call	_PT3Rout
-;src/man/game.c:243: PT3Play();
+;src/man/game.c:305: PT3Play();
 	call	_PT3Play
-;src/man/game.c:251: EnableInterupt();
+;src/man/game.c:313: EnableInterupt();
 	ei;	
-;src/man/game.c:252: }
+;src/man/game.c:314: }
 	ret
-;src/man/game.c:254: void man_game_cargar_buffer_efectos_sonido(){
+;src/man/game.c:316: void man_game_cargar_buffer_efectos_sonido(){
 ;	---------------------------------
 ; Function man_game_cargar_buffer_efectos_sonido
 ; ---------------------------------
 _man_game_cargar_buffer_efectos_sonido::
-;src/man/game.c:262: }
+;src/man/game.c:324: }
 	ret
-;src/man/game.c:264: void man_game_reproducir_efecto_sonido(char effect){
+;src/man/game.c:326: void man_game_reproducir_efecto_sonido(char effect){
 ;	---------------------------------
 ; Function man_game_reproducir_efecto_sonido
 ; ---------------------------------
 _man_game_reproducir_efecto_sonido::
-;src/man/game.c:277: }
+;src/man/game.c:339: }
 	ret
-;src/man/game.c:279: void debug(){
+;src/man/game.c:341: void debug(){
 ;	---------------------------------
 ; Function debug
 ; ---------------------------------
 _debug::
-;src/man/game.c:285: BoxFill (0, 23*8, 256, 210, 6, LOGICAL_IMP );
+;src/man/game.c:347: TEntity *object=&array_objects[0];
+	ld	bc, (_array_objects)
+;src/man/game.c:348: BoxFill (0, 23*8, 256, 210, 6, LOGICAL_IMP );
+	push	bc
 	xor	a, a
 	ld	d,a
 	ld	e,#0x06
@@ -3792,15 +3970,14 @@ _debug::
 	ld	hl, #10
 	add	hl, sp
 	ld	sp, hl
-;src/man/game.c:286: PutText(0,200,Itoa(sys_collider_get_tile_down_array(player),"  ",10),8);
-	ld	hl, (_player)
-	push	hl
-	call	_sys_collider_get_tile_down_array
-	pop	af
-	ld	bc, #0x000a
+	call	_sys_entity_get_num_objects
+	pop	bc
+	ld	h, #0x00
 	push	bc
-	ld	bc, #___str_14
-	push	bc
+	ld	de, #0x000a
+	push	de
+	ld	de, #___str_15
+	push	de
 	push	hl
 	call	_Itoa
 	pop	af
@@ -3817,14 +3994,21 @@ _debug::
 	call	_PutText
 	pop	af
 	pop	af
-;src/man/game.c:287: PutText(50,200,Itoa(tile_stairs1,"  ",10),8);
+	pop	af
 	inc	sp
-	ld	hl,#0x000a
-	ex	(sp),hl
-	ld	hl, #___str_14
+	pop	bc
+;src/man/game.c:350: PutText(50,200,Itoa(object->plane,"  ",10),8);
+	ld	de, #___str_15
+	ld	l, c
+	ld	h, b
+	ld	bc, #0x0011
+	add	hl, bc
+	ld	c, (hl)
+	ld	b, #0x00
+	ld	hl, #0x000a
 	push	hl
-	ld	hl, #0x00c0
-	push	hl
+	push	de
+	push	bc
 	call	_Itoa
 	pop	af
 	pop	af
@@ -3842,14 +4026,15 @@ _debug::
 	pop	af
 	pop	af
 	inc	sp
-;src/man/game.c:288: PutText(100,200,Itoa(sys_entity_get_num_enemies(),"  ",10),8);
-	call	_sys_entity_get_num_enemies
-	ld	h, #0x00
-	ld	bc, #0x000a
-	push	bc
-	ld	bc, #___str_14
-	push	bc
+;src/man/game.c:351: PutText(100,200,Itoa(enabled_world_change,"  ",10),8);
+	ld	de, #___str_15
+	ld	hl,#_enabled_world_change + 0
+	ld	c, (hl)
+	ld	b, #0x00
+	ld	hl, #0x000a
 	push	hl
+	push	de
+	push	bc
 	call	_Itoa
 	pop	af
 	pop	af
@@ -3867,22 +4052,39 @@ _debug::
 	pop	af
 	pop	af
 	inc	sp
-;src/man/game.c:302: }
+;src/man/game.c:366: }
 	ret
-___str_14:
+___str_15:
 	.ascii "  "
 	.db 0x00
-;src/man/game.c:304: void pintar_HUD(){
+;src/man/game.c:368: void pintar_HUD(){
 ;	---------------------------------
 ; Function pintar_HUD
 ; ---------------------------------
 _pintar_HUD::
-;src/man/game.c:305: HMMM(0,256+16,0,184,16,16);
+;src/man/game.c:370: BoxFill (0, 23*8, 256, 210, 4, LOGICAL_IMP );
+	xor	a, a
+	ld	d,a
+	ld	e,#0x04
+	push	de
+	ld	hl, #0x00d2
+	push	hl
+	ld	hl, #0x0100
+	push	hl
+	ld	hl, #0x00b8
+	push	hl
+	ld	l, #0x00
+	push	hl
+	call	_BoxFill
+	ld	hl, #10
+	add	hl, sp
+	ld	sp, hl
+;src/man/game.c:372: HMMM(0,256+16,0,188,16,16);
 	ld	hl, #0x0010
 	push	hl
 	ld	l, #0x10
 	push	hl
-	ld	l, #0xb8
+	ld	l, #0xbc
 	push	hl
 	ld	l, #0x00
 	push	hl
@@ -3894,14 +4096,14 @@ _pintar_HUD::
 	ld	hl, #12
 	add	hl, sp
 	ld	sp, hl
-;src/man/game.c:306: HMMM(16,256+16,0,200,16,16);
+;src/man/game.c:374: HMMM(2*8,256+16,50,188,16,16);
 	ld	hl, #0x0010
 	push	hl
 	ld	l, #0x10
 	push	hl
-	ld	l, #0xc8
+	ld	l, #0xbc
 	push	hl
-	ld	l, #0x00
+	ld	l, #0x32
 	push	hl
 	ld	hl, #0x0110
 	push	hl
@@ -3911,8 +4113,25 @@ _pintar_HUD::
 	ld	hl, #12
 	add	hl, sp
 	ld	sp, hl
-;src/man/game.c:307: PutText(20,184+4,Itoa(actual_world,"  ",10),8);
-	ld	de, #___str_15
+;src/man/game.c:376: HMMM(3*8,256,100,188,16,16);
+	ld	hl, #0x0010
+	push	hl
+	ld	l, #0x10
+	push	hl
+	ld	l, #0xbc
+	push	hl
+	ld	l, #0x64
+	push	hl
+	ld	hl, #0x0100
+	push	hl
+	ld	hl, #0x0018
+	push	hl
+	call	_HMMM
+	ld	hl, #12
+	add	hl, sp
+	ld	sp, hl
+;src/man/game.c:377: PutText(20,192,Itoa(actual_world,"  ",10),8);
+	ld	de, #___str_16
 	ld	hl,#_actual_world + 0
 	ld	c, (hl)
 	ld	b, #0x00
@@ -3928,7 +4147,7 @@ _pintar_HUD::
 	push	af
 	inc	sp
 	push	hl
-	ld	hl, #0x00bc
+	ld	hl, #0x00c0
 	push	hl
 	ld	l, #0x14
 	push	hl
@@ -3937,10 +4156,38 @@ _pintar_HUD::
 	pop	af
 	pop	af
 	inc	sp
-;src/man/game.c:308: PutText(20,200+4,Itoa(player->energy,"  ",10),8);
-	ld	de, #___str_15
+;src/man/game.c:378: PutText(70,192,Itoa(player->lives,"   ",10),8);
+	ld	de, #___str_17+0
 	ld	hl, (_player)
 	ld	bc, #0x0014
+	add	hl, bc
+	ld	c, (hl)
+	ld	b, #0x00
+	ld	hl, #0x000a
+	push	hl
+	push	de
+	push	bc
+	call	_Itoa
+	pop	af
+	pop	af
+	pop	af
+	ld	a, #0x08
+	push	af
+	inc	sp
+	push	hl
+	ld	hl, #0x00c0
+	push	hl
+	ld	l, #0x46
+	push	hl
+	call	_PutText
+	pop	af
+	pop	af
+	pop	af
+	inc	sp
+;src/man/game.c:379: PutText(120,192,Itoa(player->points,"  ",10),8);
+	ld	de, #___str_16
+	ld	hl, (_player)
+	ld	bc, #0x0012
 	add	hl, bc
 	ld	c, (hl)
 	inc	hl
@@ -3957,19 +4204,66 @@ _pintar_HUD::
 	push	af
 	inc	sp
 	push	hl
-	ld	hl, #0x00cc
+	ld	hl, #0x00c0
 	push	hl
-	ld	l, #0x14
+	ld	l, #0x78
 	push	hl
 	call	_PutText
 	pop	af
 	pop	af
 	pop	af
 	inc	sp
-;src/man/game.c:309: }
+;src/man/game.c:380: PutText(140,192,"Need:",8);
+	ld	a, #0x08
+	push	af
+	inc	sp
+	ld	hl, #___str_18
+	push	hl
+	ld	hl, #0x00c0
+	push	hl
+	ld	l, #0x8c
+	push	hl
+	call	_PutText
+	pop	af
+	pop	af
+	pop	af
+	inc	sp
+;src/man/game.c:381: PutText(180,192,Itoa(world_money,"  ",10),8);
+	ld	de, #___str_16
+	ld	hl,#_world_money + 0
+	ld	c, (hl)
+	ld	b, #0x00
+	ld	hl, #0x000a
+	push	hl
+	push	de
+	push	bc
+	call	_Itoa
+	pop	af
+	pop	af
+	pop	af
+	ld	a, #0x08
+	push	af
+	inc	sp
+	push	hl
+	ld	hl, #0x00c0
+	push	hl
+	ld	l, #0xb4
+	push	hl
+	call	_PutText
+	pop	af
+	pop	af
+	pop	af
+	inc	sp
+;src/man/game.c:384: }
 	ret
-___str_15:
+___str_16:
 	.ascii "  "
+	.db 0x00
+___str_17:
+	.ascii "   "
+	.db 0x00
+___str_18:
+	.ascii "Need:"
 	.db 0x00
 ;watchmen.c:4: void main(void) 
 ;	---------------------------------
@@ -4368,6 +4662,38 @@ __xinit__SPRITE_DATA:
 	.db #0x60	; 96
 	.db #0x40	; 64
 	.db #0xc0	; 192
+	.db #0x02	; 2
+	.db #0x1c	; 28
+	.db #0x7a	; 122	'z'
+	.db #0x78	; 120	'x'
+	.db #0x7e	; 126
+	.db #0x3e	; 62
+	.db #0x38	; 56	'8'
+	.db #0x26	; 38
+	.db #0x10	; 16
+	.db #0x2c	; 44
+	.db #0x27	; 39
+	.db #0x30	; 48	'0'
+	.db #0x18	; 24
+	.db #0x1f	; 31
+	.db #0x0c	; 12
+	.db #0x07	; 7
+	.db #0x80	; 128
+	.db #0x18	; 24
+	.db #0xbe	; 190
+	.db #0x1e	; 30
+	.db #0xae	; 174
+	.db #0xac	; 172
+	.db #0x1a	; 26
+	.db #0xb6	; 182
+	.db #0x0a	; 10
+	.db #0x1a	; 26
+	.db #0xe4	; 228
+	.db #0x08	; 8
+	.db #0x34	; 52	'4'
+	.db #0xec	; 236
+	.db #0x18	; 24
+	.db #0xf0	; 240
 __xinit__COLOR_DATA:
 	.db #0x09	; 9
 	.db #0x08	; 8
@@ -4561,6 +4887,178 @@ __xinit__COLOR_DATA:
 	.db #0x0f	; 15
 	.db #0x0f	; 15
 	.db #0x0f	; 15
+	.db #0x0a	; 10
+	.db #0x0a	; 10
+	.db #0x0a	; 10
+	.db #0x0a	; 10
+	.db #0x0a	; 10
+	.db #0x0a	; 10
+	.db #0x0a	; 10
+	.db #0x0a	; 10
+	.db #0x09	; 9
+	.db #0x09	; 9
+	.db #0x09	; 9
+	.db #0x09	; 9
+	.db #0x08	; 8
+	.db #0x08	; 8
+	.db #0x08	; 8
+	.db #0x08	; 8
+__xinit__world_enemies:
+	.dw #0x0050
+	.dw #0x0018
+	.db #0x02	; 2
+	.dw #0x0020
+	.dw #0x0018
+	.db #0x02	; 2
+	.dw #0x0030
+	.dw #0x0048
+	.db #0x02	; 2
+	.dw #0x00a0
+	.dw #0x0078
+	.db #0x02	; 2
+	.dw #0x0050
+	.dw #0x00a0
+	.db #0x02	; 2
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.dw #0x0040
+	.dw #0x0008
+	.db #0x02	; 2
+	.dw #0x0028
+	.dw #0x0028
+	.db #0x02	; 2
+	.dw #0x00c8
+	.dw #0x0050
+	.db #0x02	; 2
+	.dw #0x00c8
+	.dw #0x0078
+	.db #0x02	; 2
+	.dw #0x0050
+	.dw #0x00a0
+	.db #0x02	; 2
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+__xinit__world_objects:
+	.dw #0x0028
+	.dw #0x0018
+	.db #0x16	; 22
+	.dw #0x0070
+	.dw #0x0018
+	.db #0x16	; 22
+	.dw #0x0008
+	.dw #0x0048
+	.db #0x16	; 22
+	.dw #0x00f0
+	.dw #0x0048
+	.db #0x16	; 22
+	.dw #0x0008
+	.dw #0x0078
+	.db #0x16	; 22
+	.dw #0x00f0
+	.dw #0x00a0
+	.db #0x16	; 22
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.dw #0x00e0
+	.dw #0x0008
+	.db #0x16	; 22
+	.dw #0x0078
+	.dw #0x0028
+	.db #0x16	; 22
+	.dw #0x00a0
+	.dw #0x0020
+	.db #0x32	; 50	'2'
+	.dw #0x0018
+	.dw #0x0060
+	.db #0x16	; 22
+	.dw #0x0018
+	.dw #0x0070
+	.db #0x16	; 22
+	.dw #0x00d0
+	.dw #0x00a0
+	.db #0x16	; 22
+	.dw #0x0018
+	.dw #0x00a0
+	.db #0x16	; 22
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
+	.db 0x00
 __xinit__fileNameSongEffects:
 	.ascii "effects.afb"
 	.db 0x00

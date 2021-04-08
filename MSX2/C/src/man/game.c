@@ -12,6 +12,7 @@
 #include "src/sys/ai.c"
 #include "src/man/files.c"
 #include "src/man/sprites.c"
+#include "src/man/game_coordenates.c"
 
 
 void man_game_init();
@@ -25,6 +26,7 @@ void man_game_cargar_buffer_musica();
 void man_game_cargar_buffer_efectos_sonido();
 void man_game_reproducir_musica_y_efectos();
 void man_game_reproducir_efecto_sonido(char effect);
+
 
 void wait();
 void debug();
@@ -47,11 +49,14 @@ FCB TFileMusic;
 TEntity* player;
 char actual_world;
 char world_change;
-unsigned long time;
+char enabled_world_change;
+char world_money;
+unsigned int time;
 unsigned int hours,minutes,secunds;
 unsigned int memory_space;
 
 TEntity* array_enemies;
+TEntity* array_objects;
 
 int resultado;
 void man_game_init(){
@@ -90,7 +95,8 @@ void man_game_init(){
     //Le ponemos que aplique que el mapa ha cambiado para que ponga
     // los objetos, enemigos y la posición del player del mundo correspondiente
     // Esto se aplica en el método man_game_update
-    world_change=1;
+    world_change=1;    
+
     //creamos al player
     player=sys_entity_create_player();
     PutText(0,0, "Eres un vigilante y como siempre estas durmiendo te han robado.",0);
@@ -101,6 +107,8 @@ void man_game_init(){
 
 void man_game_play(){
     do{
+        //Game
+        man_game_update();
         //Musica y efectos
         //man_game_reproducir_musica_y_efectos();
         //Player
@@ -113,56 +121,110 @@ void man_game_play(){
             sys_ai_update(enemy);
             sys_render_update(enemy);
         }
+        //Objetos
+        for (char i=0;i<sys_entity_get_num_objects();++i){
+            TEntity *object=&array_objects[i];
+            sys_render_update(object);
+            //Colisión de objetos con player
+            if (sys_collider_entity1_collider_entity2(player, object)){
+                //man_game_reproducir_efecto_sonido(5);
+                player->points+=10;
+                world_money-=1;
+                pintar_HUD();
+                Beep();
+                sys_entity_erase_object(i);
 
-        //Game
-        man_game_update();
-        //
+            }
+            
+        }
+
+
+
+
+        if (world_money==0){
+            if (time % 3==0)HMMM(8*8,256,30*8,24*8,16,16);
+            else if (enabled_world_change==0)HMMM(8*8,256+100,30*8,24*8,16,16);
+            if (sys_collider_get_tile_array(player)==tile_phone1 || sys_collider_get_tile_array(player)==tile_phone2){
+                enabled_world_change=1;
+            }
+            if (enabled_world_change==1)man_game_check_change_world();
+        }
+
+        //Mostramos el temporizador
+        time=RealTimer();
+        PutText(200,192,Itoa(time/60,"      ",10),0);
+
+
         //debug();
         //Pausa
         wait();
-
     }while(1);
 }
 
 void man_game_update(){
     if (world_change==1){
         Cls();
+        sys_entity_erase_all_objects();
+        sys_entity_erase_all_enemies();
+
         if (actual_world==0){
             //Leemos el mapa
             load_file_into_buffer_with_structure("world0.bin");
+            //Monedas que hay que recoger
+            world_money=6;
             //Ponemos el player
             //20*8 es el suelo
-            player->x=8*2;
-            player->y=8*19;
-            //Creamos los enemigos
-            TEntity *enemy1=sys_entity_create_enemy1();
-            TEntity *enemy2=sys_entity_create_enemy1();
-            enemy2->plane=enemy1_plane+sys_entity_get_num_enemies();
-            enemy2->x=4*8;
-            enemy2->y=9*8;
-            enemy2->dir=7;
-            TEntity *enemy3=sys_entity_create_enemy1();
-            enemy3->plane=enemy1_plane+sys_entity_get_num_enemies();
-            enemy3->x=6*8;
-            enemy3->y=15*8;
-            TEntity *enemy4=sys_entity_create_enemy1();
-            enemy4->plane=enemy1_plane+sys_entity_get_num_enemies();
-            enemy4->x=20*8;
-            enemy4->y=20*8;
-            
-            
+            player->x=1*8;
+            player->y=19*8;
             //man_game_showBuffer();
         }else if (actual_world==1){
             load_file_into_buffer_with_structure("world1.bin");
-            player->x=8*2;
-            player->y=8*20;
+            player->x=14*8;
+            player->y=20*8;
+            world_money=6;
+        }else if (actual_world==2){
+            player->x=14*8;
+            player->y=20*8;
+            world_money=20;
         }
+
+
+
+
+        //Si el mundo ha cambiado, creamos los enemigos del mundo correspondiente
+        for (int i=0;i<MAX_enemies;i++){ 
+        TCoordinate_enemy* coordinate_enemy=&world_enemies[actual_world][i];
+            TEntity *enemy=sys_entity_create_enemy1();
+            enemy->x=coordinate_enemy->x;
+            enemy->y=coordinate_enemy->y;
+            enemy->type=coordinate_enemy->type;
+            //enemy->dir=7;
+            enemy->plane=enemy1_plane+sys_entity_get_num_enemies();
+        }
+        //Creamos los objetos del mundo correspondiente
+        for (int i=0; i<MAX_objects;i++){
+        TCoordinate_object* coordinate_object=&world_objects[actual_world][i];
+            TEntity *object=sys_entity_create_object();
+            object->y=coordinate_object->y;
+            object->x=coordinate_object->x;
+            object->type=coordinate_object->type;
+            object->plane=object_money+sys_entity_get_num_objects();
+        }
+
+
+
         man_game_pintarMapa();
         array_enemies=sys_entity_get_array_structs_enemies();
+        array_objects=sys_entity_get_array_structs_objects();
         pintar_HUD();
+        SpriteOn();
         world_change=0;
+        //Esto deshabilita la puerta para cambiar de mundo hasta que no se cojan las mondas
+        enabled_world_change=0;
+        //Pintamos en la puerta de salida otra puerta
+        //HMMM(9*8,256,0,30*8,16,24);
     }
-    man_game_check_change_world();
+    
 }
 void man_game_check_change_world(){
     if (sys_collider_get_tile_array(player)==tile_end_level1 || sys_collider_get_tile_array(player)==tile_end_level2 ){
@@ -208,7 +270,7 @@ void man_game_showBuffer(){
 void man_game_copiarSpritesVRAM(){
     unsigned int sprite=0;
     unsigned int siguiente = 0;	
-	for (char i=0; i<13; i++) {		
+	for (char i=0; i<14; i++) {		
 		//SetSpritePattern(sprite, &buffer[siguiente],32);
         //También es posible cargar los sprites como datos, si antes hemos sacado
         // los datos del spritedevtool, habilita el include
@@ -282,10 +344,12 @@ void debug(){
     //time=RealTimer();      // Read Current Timer Value
     //minutes=time/3000;           
     //secunds=time/50;
+    TEntity *object=&array_objects[0];
     BoxFill (0, 23*8, 256, 210, 6, LOGICAL_IMP );
-    PutText(0,200,Itoa(sys_collider_get_tile_down_array(player),"  ",10),8);
-    PutText(50,200,Itoa(tile_stairs1,"  ",10),8);
-    PutText(100,200,Itoa(sys_entity_get_num_enemies(),"  ",10),8);
+    PutText(0,200,Itoa(sys_entity_get_num_objects(),"  ",10),8);
+    PutText(50,200,Itoa(object->plane,"  ",10),8);
+    PutText(100,200,Itoa(enabled_world_change,"  ",10),8);
+    
  
 
     //Screen(1);
@@ -302,8 +366,21 @@ void debug(){
 }
 
 void pintar_HUD(){
-    HMMM(0,256+16,0,184,16,16);
-    HMMM(16,256+16,0,200,16,16);
-    PutText(20,184+4,Itoa(actual_world,"  ",10),8);
-    PutText(20,200+4,Itoa(player->energy,"  ",10),8);
+    //Borramos todo el HUD
+    BoxFill (0, 23*8, 256, 210, 4, LOGICAL_IMP );
+    //Copiamos la casita
+    HMMM(0,256+16,0,188,16,16);
+    //Copiamos al personaje gris
+    HMMM(2*8,256+16,50,188,16,16);
+    //Copiamos las monedas
+    HMMM(3*8,256,100,188,16,16);
+    PutText(20,192,Itoa(actual_world,"  ",10),8);
+    PutText(70,192,Itoa(player->lives,"   ",10),8);
+    PutText(120,192,Itoa(player->points,"  ",10),8);
+    PutText(140,192,"Need:",8);
+    PutText(180,192,Itoa(world_money,"  ",10),8);
+  
+    
 }
+
+
