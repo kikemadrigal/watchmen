@@ -111,7 +111,7 @@ void man_game_play(){
         //Game
         man_game_update();
         //Musica y efectos
-        //man_game_reproducir_musica_y_efectos();
+        man_game_reproducir_musica_y_efectos();
         //Player
         sys_physics_update(player);
         sys_render_update(player);
