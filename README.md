@@ -12,6 +12,8 @@ https://kikemadrigal.github.io/MSX1-MSX2-basic-watchmen/.?disk=MSX2-C.dsk
 
 <img src=images/MSX2-C.PNG width=300px/>
 
+<img src=images/MSX2-C-1.PNG width=300px/>
+
 <img src=images/MSX2-C-2.PNG width=300px/>
 
 <img src=images/MSX2-C-3.PNG width=300px/>
