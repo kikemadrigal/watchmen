@@ -1,6 +1,6 @@
-Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.04.08 - 19:42:59]
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.04.09 - 07:43:54]
 
-world0.asm
+asm/world0.asm
 Errors: 0
 
        1   00:0000                        
@@ -100,7 +100,7 @@ Errors: 0
 00:0000D2E1   FINAL
 
 
- Output: world0.out
+ Output: asm/world0.out
 -------------------------------------------------
 
  Page: 00

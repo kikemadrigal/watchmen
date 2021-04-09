@@ -33,10 +33,10 @@ void sys_ai_update_enemy_behavior_1(TEntity *enemy){
         //Beep();
     }*/
     //if (get_tile_down_array(enemy)<man_graphics_get_tile_suelo()) enemy->y+=enemy->vy;
-    /*if (get_tile_down_right_array(enemy)<man_graphics_get_tile_suelo() || get_tile_down_left_array(enemy)<man_graphics_get_tile_suelo()) {
+    if (get_tile_down_right_array(enemy)==255 || get_tile_down_left_array(enemy)==255) {
         if(enemy->dir==7) enemy->dir=3;
         else if(enemy->dir==3) enemy->dir=7;
-    }*/
+    }
     if(enemy->dir==7){
         enemy->x-=enemy->vx;
     }else if(enemy->dir==3){

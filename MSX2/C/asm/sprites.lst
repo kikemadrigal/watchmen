@@ -1,6 +1,6 @@
-Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.04.08 - 19:42:59]
+Sjasm Z80 Assembler v0.42c - www.xl2s.tk             [2021.04.09 - 07:43:53]
 
-sprites.asm
+asm/sprites.asm
 Errors: 0
 
        1   00:0000                        
@@ -130,7 +130,7 @@ Errors: 0
 00:0000D1A1   FINAL
 
 
- Output: sprites.out
+ Output: asm/sprites.out
 -------------------------------------------------
 
  Page: 00

@@ -39,17 +39,15 @@ struct TEntity{
     unsigned char dir;
     unsigned char andando;
     unsigned char jump;
-    unsigned char scale;
-    unsigned char collision;
     unsigned char plane;
     unsigned int points;
     unsigned char lives;
     unsigned int energy;
 };
 
-#define MAX_enemies 10
+#define MAX_enemies 6
 //#define MAX_shots 10
-#define MAX_objects 10
+#define MAX_objects 6
 TEntity array_structs_enemies[MAX_enemies];
 //TEntity array_structs_shots[MAX_shots];
 TEntity array_structs_objects[MAX_objects];
@@ -192,7 +190,7 @@ TEntity* sys_entity_create_object(){
     return object;
 }  
 
-void sys_entity_erase_enemy(char i){
+void sys_entity_erase_enemy(char i){ 
    --num_enemies;
    TEntity *enemy=&array_structs_enemies[i];
    PutSprite(enemy->plane , player_Jump_right_pattern, 0,212,0 );
@@ -201,8 +199,9 @@ void sys_entity_erase_enemy(char i){
 }
 void sys_entity_erase_all_enemies(){
   for (char i=0;i<sys_entity_get_num_enemies();++i){
-      sys_entity_erase_enemy(i);
+     sys_entity_erase_enemy(i);
   }
+  num_enemies=0;
 }
 /*
 void sys_entity_erase_shot(char i){
@@ -224,6 +223,7 @@ void sys_entity_erase_all_objects(){
     for (char i=0;i<sys_entity_get_num_objects();++i){
         sys_entity_erase_object(i);
     }
+    num_objects=0;
 }  
 //End life cicle
 

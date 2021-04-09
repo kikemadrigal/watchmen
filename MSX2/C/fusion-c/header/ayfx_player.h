@@ -22,7 +22,7 @@
 * Many thanks to him.
 */
 
-//#include <stdlib.h>
+#include <stdlib.h>
 
 
 #ifndef _AYFX_H

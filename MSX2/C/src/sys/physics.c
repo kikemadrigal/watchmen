@@ -5,8 +5,10 @@
 #include "./src/sys/collider.c"
 //Para obetenr la definición de los tiles
 #include "./src/man/sprites.c"
-//Nevcesitamos llamar al man_game_crear_disparo()
+////Para el man_game_reproducir_efecto_sonido y man_game_crear_disparo()
 #include "./src/man/game.c"
+
+
 
 //Declarations
 void sys_physics_update(TEntity *entity);
@@ -32,6 +34,7 @@ void sys_physics_update(TEntity *entity){
         }
         //Colision con el margen izquierdo
         if(entity->x<=0) entity->x=0;
+        else if(entity->x>=240) entity->x=240;
         //Colision con el margen inferior
         if(entity->y>180) entity->y=212-16;
           
@@ -75,27 +78,29 @@ void sys_physics_check_keyboard(TEntity *entity){
         entity_jump(entity); 
         entity->x+=entity->vx;
     }
+    //Movimiento hacia la derecha
     if(joy==3){
         entity->dir=3;
-        //if (sys_collider_get_tile_right_array(entity)<sys_collider_get_tile_down_array(entity)) 
-            entity->x+=entity->vx;
         sys_anim_update(entity);
+        //if(sys_collider_get_tile_right_array(entity)<tile_floor_tile || sys_collider_get_tile_right_array(entity)==255)
+            entity->x+=entity->vx;
     }
     if(joy==4){
     }
     if(joy==5){
-        if(sys_collider_get_tile_down_array(entity)==tile_stairs1 ||sys_collider_get_tile_down_array(entity)==tile_stairs2 ){
-            entity->dir=5;
+        entity->dir=5;
+        if(sys_collider_get_tile_down_array(entity)==tile_stairs1 ||sys_collider_get_tile_down_array(entity)==tile_stairs2 )
             entity->y+=entity->vy;
-            sys_anim_update(entity);
-        }
+        sys_anim_update(entity);
+        
     }  
     if(joy==6){
     }  
     if(joy==7) {
         entity->dir=7;
         sys_anim_update(entity);
-        entity->x-=entity->vx; 
+        //if(sys_collider_get_tile_left_array(entity)<tile_floor_tile || sys_collider_get_tile_left_array(entity)==255)
+            entity->x-=entity->vx; 
     }
     if(joy==8){
         entity->dir=7;

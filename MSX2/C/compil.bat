@@ -19,12 +19,16 @@ SET program=watchmen
 rem sjasm (http://www.xl2s.tk/) es un compilador de ensamblador z80 que puedo convertir tu código ensamblador en los archivos binarios.rom y .bin
 rem necesitamos el .bin de la pantalla de carga y del reproductor de música
 
-start /wait sjasm sprites.asm
-start /wait sjasm world0.asm
-start /wait sjasm world1.asm
+start /wait sjasm asm/sprites.asm
+start /wait sjasm asm/world0.asm
+start /wait sjasm asm/world1.asm
+start /wait sjasm asm/world2.asm
+start /wait sjasm asm/world3.asm
 move /y sprites.bin .\dsk
 move /y world0.bin .\dsk
 move /y world1.bin .\dsk
+move /y world2.bin .\dsk
+move /y world3.bin .\dsk
 
 
 
@@ -66,11 +70,11 @@ tools\Hex2bin\hex2bin -e com %program%.ihx
 
 copy %program%.com DSK\%program%.com /y
 
-rem del %program%.com
-rem del %program%.asm
+del %program%.com
+del %program%.asm
 del %program%.ihx
 del %program%.lk
-rem del %program%.lst
+del %program%.lst
 del %program%.map
 del %program%.noi
 del %program%.sym
