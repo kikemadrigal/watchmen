@@ -24,11 +24,12 @@ start /wait sjasm asm/world0.asm
 start /wait sjasm asm/world1.asm
 start /wait sjasm asm/world2.asm
 start /wait sjasm asm/world3.asm
+start /wait sjasm asm/world4.asm
 move /y sprites.bin .\dsk
 move /y world0.bin .\dsk
 move /y world1.bin .\dsk
 move /y world2.bin .\dsk
-move /y world3.bin .\dsk
+move /y world4.bin .\dsk
 
 
 

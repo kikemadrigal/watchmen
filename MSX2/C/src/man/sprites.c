@@ -48,8 +48,8 @@ unsigned char COLOR_DATA_MONEY[];
   #define tile_stairs1 192 // escalera
   #define tile_stairs2 193 // escalera
   #define tile_floor_tile 224 //suelo >224
-  #define tile_end_level1 232 // y superior
-  #define tile_end_level2 233 // y superior
+  #define tile_end_level1 76 // y superior
+  #define tile_end_level2 77 // y superior
 
 
 

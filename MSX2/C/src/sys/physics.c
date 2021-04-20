@@ -38,7 +38,7 @@ void sys_physics_update(TEntity *entity){
         //Colision con el margen inferior
         if(entity->y>180) entity->y=212-16;
           
-        //Gravedad
+        //Gravedad, bajará hasta que el tile de debajo sea suelo o escalera
         if (sys_collider_get_tile_down_array(entity)<tile_stairs1 || sys_collider_get_tile_down_array(entity)>=255){
             //Beep();
             entity->y+=entity->vy;
@@ -62,51 +62,75 @@ void sys_physics_check_keyboard(TEntity *entity){
     // Movement
     // 0=inactive  1=up 2=up & right 3=right 4=down & right 5=down 6=down & left 7=left 8=up & left 
     char joy = JoystickRead(0);
+    int tile_derecha=sys_collider_get_tile_right_array(entity);
+    int tile_izquierda=sys_collider_get_tile_left_array(entity);
+    int tile_arriba=sys_collider_get_tile_up_array(entity);
+    int tile_abajo=sys_collider_get_tile_down_array(entity);
+    int tile_pie=sys_collider_get_tile_array(entity);
+    //Movimiento hacia arriba
     if(joy==1){
-        //Si lo que tiene en los pies o en el suelo es una escalera entonces sube por la escalera
-        if(sys_collider_get_tile_array(entity)==tile_stairs1 ||sys_collider_get_tile_array(entity)==tile_stairs2 || sys_collider_get_tile_down_array(entity)==tile_stairs1|| sys_collider_get_tile_down_array(entity)==tile_stairs2){
-            entity->dir=1;
+        entity->dir=1;
+        sys_anim_update(entity);
+        //Irá hacia arriba solo si es uno de los tiles de la escalera
+        if(tile_pie==tile_stairs1 || tile_pie==tile_stairs2 || tile_abajo==tile_stairs1 || tile_abajo==tile_stairs2 ){
             entity->y-=entity->vy;
-            sys_anim_update(entity);
-        //Si debajo no tiene ninguna escalera y no está saltando
+        //Si debajo no tiene ninguna escalera y no está saltando, saltamos
         }else if(entity->jump==0){
             entity_jump(entity);
         }
     }
+    //Arriba/derecha
     if(joy==2){
-        entity->dir=3;
-        entity_jump(entity); 
-        entity->x+=entity->vx;
+        entity->dir=2;
+        sys_anim_update(entity);
+        if(tile_derecha<tile_floor_tile || tile_derecha==255){
+            entity->x+=entity->vx;
+            entity_jump(entity); 
+        }else{
+            entity_jump(entity); 
+        }
+    
+    }
+        //Arriba/izquierda
+    if(joy==8){
+        entity->dir=8;
+        sys_anim_update(entity);
+        if(tile_izquierda<tile_floor_tile || tile_izquierda==255){
+            entity_jump(entity);
+            entity->x-=entity->vx; 
+        }else{
+            entity_jump(entity); 
+        }
     }
     //Movimiento hacia la derecha
     if(joy==3){
         entity->dir=3;
         sys_anim_update(entity);
-        //if(sys_collider_get_tile_right_array(entity)<tile_floor_tile || sys_collider_get_tile_right_array(entity)==255)
+        if(tile_derecha<tile_floor_tile || tile_derecha==255)
             entity->x+=entity->vx;
     }
     if(joy==4){
+        entity->dir=4;
     }
+    //Hacia abajo
     if(joy==5){
         entity->dir=5;
-        if(sys_collider_get_tile_down_array(entity)==tile_stairs1 ||sys_collider_get_tile_down_array(entity)==tile_stairs2 )
+        if(tile_abajo==tile_stairs1 ||tile_abajo==tile_stairs2 )
             entity->y+=entity->vy;
         sys_anim_update(entity);
         
     }  
     if(joy==6){
+        entity->dir=6;
     }  
+    //Movimiento hacia la izquierda
     if(joy==7) {
         entity->dir=7;
         sys_anim_update(entity);
-        //if(sys_collider_get_tile_left_array(entity)<tile_floor_tile || sys_collider_get_tile_left_array(entity)==255)
+        if(tile_izquierda<tile_floor_tile || tile_izquierda==255)
             entity->x-=entity->vx; 
     }
-    if(joy==8){
-        entity->dir=7;
-        entity_jump(entity);
-        entity->x-=entity->vx; 
-    }
+
 
     //Leemos el disparo
     char trigger = TriggerRead(0);

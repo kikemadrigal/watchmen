@@ -101,7 +101,7 @@ void man_game_init(){
     //creamos al player
     player=sys_entity_create_player();
     PutText(0,0, "Eres un vigilante y como siempre estas durmiendo te han robado.",0);
-    PutText(0,16, "Eecoge las monedas que han ido perdiendo y llama a la policia, depues pasa de vivel.",0);
+    PutText(0,16, "Recoge las monedas que han ido perdiendo y llama a la policia, depues pasa de vivel.",0);
     PutText(20,180, "Press any key to continue",0);
     WaitKey();
 }
@@ -111,7 +111,7 @@ void man_game_play(){
         //Game
         man_game_update();
         //Musica y efectos
-        man_game_reproducir_musica_y_efectos();
+        //man_game_reproducir_musica_y_efectos();
         //Player
         sys_physics_update(player);
         sys_render_update(player);
@@ -153,7 +153,8 @@ void man_game_play(){
                 enabled_world_change=1;
             }
             if (enabled_world_change==1){
-                HMMM(64,256+40,destiny_x_door,destiny_y_door,16,24);
+                //Volvemos a pintar la puerta de salida
+                HMMM(96,256,destiny_x_door,destiny_y_door,16,24);
                 //Si el player colisiona con la puerta aumentamos el nuvel
                 if (sys_collider_get_tile_array(player)==tile_end_level1 || sys_collider_get_tile_array(player)==tile_end_level2 ){
                     //Con el world change hacemos que se creen los obejtos y nemigos correspodientes
@@ -204,7 +205,6 @@ void man_game_update(){
             //Monedas que hay que recoger
             world_money=6;
             //Ponemos el player
-            //20*8 es el suelo
             player->x=1*8;
             player->y=19*8;
             man_game_pintarMapa();
@@ -225,16 +225,20 @@ void man_game_update(){
         }else if (actual_world==2){
             player->x=14*8;
             player->y=20*8;
-            world_money=20;
             world_money=6;
             load_file_into_buffer_with_structure("world2.bin");
             man_game_pintarMapa();
         }else if (actual_world==3){
             player->x=14*8;
             player->y=20*8;
-            world_money=20;
             world_money=6;
             load_file_into_buffer_with_structure("world3.bin");
+            man_game_pintarMapa();
+        }else if (actual_world==4){
+            player->x=20*8;
+            player->y=19*8;
+            world_money=6;
+            load_file_into_buffer_with_structure("world4.bin");
             man_game_pintarMapa();
         }
         //Si el mundo ha cambiado, creamos los enemigos del mundo correspondiente
@@ -394,9 +398,10 @@ void debug(){
     //secunds=time/50;
     TEntity *object=&array_objects[0];
     BoxFill (0, 23*8, 256, 210, 6, LOGICAL_IMP );
-    //PutText(0,200,Itoa(sys_entity_get_num_enemies(),"  ",10),8);
-    //PutText(50,200,Itoa(sys_entity_get_num_objects(),"  ",10),8);
-    //PutText(100,200,Itoa(tile_floor_tile,"  ",10),8);
+    PutText(0,200,Itoa(sys_collider_get_tile_up_array(player),"  ",10),8);
+    PutText(50,200,Itoa(sys_collider_get_tile_left_array(player),"  ",10),8);
+    PutText(100,200,Itoa(player->dir,"  ",10),8);
+    PutText(150,200,Itoa(player->jump,"  ",10),8);
   
     
  

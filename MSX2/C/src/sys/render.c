@@ -48,15 +48,15 @@ void sys_render_update_player(TEntity *player){
     //Si se mueve a la derecha
     if (player->dir==1 || player->dir==5){
         PutSprite( player->plane, player_up1_pattern, player->x,player->y,0 );
+    }else if (player->dir==2){
+        PutSprite( player->plane, player_Jump_right_pattern, player->x,player->y,0 );
+    }else if (player->dir==8){
+        PutSprite( player->plane, player_jump_left_pattern, player->x,player->y,0 );
     }else if (player->dir==3){
-        if (player->jump==1){
-            PutSprite( player->plane, player_Jump_right_pattern, player->x,player->y,0 );
-        }else{
-            if(player->andando ==0 ){
-                PutSprite( player->plane, player_right_pattern, player->x,player->y,0 );
-            } else {
-                PutSprite( player->plane, player_right_walking_pattern, player->x,player->y,  0);
-            }
+        if(player->andando ==0 ){
+            PutSprite( player->plane, player_right_pattern, player->x,player->y,0 );
+        } else {
+            PutSprite( player->plane, player_right_walking_pattern, player->x,player->y,  0);
         }
     //Si se mueve a la izquierda
     }else if(player->dir==7){
