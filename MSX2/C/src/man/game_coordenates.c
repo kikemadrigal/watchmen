@@ -78,23 +78,23 @@ TCoordinate_enemy world_enemies[][MAX_enemies]={
 
   {//world 2
     { //coordinate_enemy 0
-      1*8,
-      20*8,
+      12*8,
+      2*8,
       entity_type_enemy1
     },
     { //coordinate_enemy 1
-      5*8,
-      20*8,
+      15*8,
+      6*8,
       entity_type_enemy1
     },
     { //coordinate_enemy 2
       15*8,
-      20*8,
+      9*8,
       entity_type_enemy1
     },
     { //coordinate_enemy 3
       25*8,
-      20*8,
+      16*8,
       entity_type_enemy1
     },
     { //coordinate_enemy 4
@@ -136,7 +136,7 @@ struct TCoordinate_object{
 TCoordinate_object world_objects[][MAX_objects]={
   {//wolrd 0, las filas son 3,9,15,20
     { //coordinate_object 0
-      5*8,
+      1*8,
       3*8,
       entity_type_object_money
     },
@@ -210,33 +210,33 @@ TCoordinate_object world_objects[][MAX_objects]={
 
   {//world 2
     { //coordinate_object 0
-      3*8,
-      1*8,
+      26*8,
+      2*8,
       entity_type_object_money
     },
     {//coordinate_object 1
-      6*8,
       1*8,
+      6*8,
       entity_type_object_money
     },
     { //coordinate_object 2
-      9*8,
-      1*8,
+      21*8,
+      6*8,
       entity_type_object_money
     },
     { //coordinate_object 3
+      9*8,
       12*8,
-      1*8,
       entity_type_object_money
     },
     { //coordinate_object 4
-      14*8,
-      1*8,
+      24*8,
+      16*8,
       entity_type_object_money
     },
     { //coordinate_object 5
+      5*8,
       16*8,
-      1*8,
       entity_type_object_money
     }
   }

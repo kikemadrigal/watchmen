@@ -54,6 +54,8 @@ unsigned int hours,minutes,secunds;
 unsigned int memory_space;
 unsigned int destiny_x_door;
 unsigned int destiny_y_door;
+unsigned int destiny_x_phone;
+unsigned int destiny_y_phone; 
 
 TEntity* array_enemies;
 TEntity* array_objects;
@@ -111,7 +113,7 @@ void man_game_play(){
         //Game
         man_game_update();
         //Musica y efectos
-        //man_game_reproducir_musica_y_efectos();
+        man_game_reproducir_musica_y_efectos();
         //Player
         sys_physics_update(player);
         sys_render_update(player);
@@ -147,14 +149,15 @@ void man_game_play(){
 
         if (sys_entity_get_num_objects()==0){
             //Esto es el parapdeo del teléfono que indica que hay que cogerlo
-            if (time % 3==0)HMMM(8*8,256,30*8,24*8,16,16);
-            else HMMM(8*8,256+100,30*8,24*8,16,16);
+            //HMMM(posicion_x_en_tilset, posicion_y_en_tileset, posicion_x_n_escenario,posicion_y_n_escenario,ancho_a_copiar,alto_a_copiar)
+            if (time % 3==0 && enabled_world_change==0)HMMM(0,256+(4*8),destiny_x_phone,destiny_y_phone,16,16);
+            else HMMM(8*2,256+(4*8),destiny_x_phone,destiny_y_phone,16,16);
             if (sys_collider_get_tile_array(player)==tile_phone1 || sys_collider_get_tile_array(player)==tile_phone2){
                 enabled_world_change=1;
             }
             if (enabled_world_change==1){
-                //Volvemos a pintar la puerta de salida
-                HMMM(96,256,destiny_x_door,destiny_y_door,16,24);
+                //Pintamos la puerta abierta
+                HMMM(6*8,256+(3*8),destiny_x_door,destiny_y_door,16,24);
                 //Si el player colisiona con la puerta aumentamos el nuvel
                 if (sys_collider_get_tile_array(player)==tile_end_level1 || sys_collider_get_tile_array(player)==tile_end_level2 ){
                     //Con el world change hacemos que se creen los obejtos y nemigos correspodientes
@@ -165,8 +168,9 @@ void man_game_play(){
         }
         //Mostramos el temporizador
         time=RealTimer();
-        //PutText(200,192,Itoa(time/60,"      ",10),0);
+        PutText(200,192,Itoa(time/60,"      ",10),0);
         //debug();
+
         //Pausa
         wait();
     }while(1);
@@ -208,26 +212,36 @@ void man_game_update(){
             player->x=1*8;
             player->y=19*8;
             man_game_pintarMapa();
-            //Pintamos en la puerta de salida la puerta cerrada
-            HMMM(80,256,256-16,16,16,24);
-            destiny_x_door=256-16;
-            destiny_y_door=16;
+            //x=29,y=4
+            destiny_x_door=29*8;
+            destiny_y_door=2*8;
+            //x=0, y=16
+            destiny_x_phone=0;
+            destiny_y_phone=15*8;
         }else if (actual_world==1){
             load_file_into_buffer_with_structure("world1.bin");
-            player->x=14*8;
+            player->x=4*8;
             player->y=20*8;
             world_money=6;
             man_game_pintarMapa();
-            //Pintamos en la puerta de salida la puerta cerrada
-            HMMM(80,256,16,32,16,24);
-            destiny_x_door=16;
-            destiny_x_door=32;
+            //x=2,y=6
+            destiny_x_door=2*8;
+            destiny_y_door=4*8;
+            //28,11
+            destiny_x_phone=28*8;
+            destiny_y_phone=10*8;
         }else if (actual_world==2){
-            player->x=14*8;
+            player->x=3*8;
             player->y=20*8;
             world_money=6;
             load_file_into_buffer_with_structure("world2.bin");
             man_game_pintarMapa();
+            //x=1,y=3
+            destiny_x_door=1*8;
+            destiny_y_door=1*8;
+            //25,17
+            destiny_x_phone=25*8;
+            destiny_y_phone=16*8;
         }else if (actual_world==3){
             player->x=14*8;
             player->y=20*8;
@@ -396,17 +410,15 @@ void debug(){
     //time=RealTimer();      // Read Current Timer Value
     //minutes=time/3000;           
     //secunds=time/50;
-    TEntity *object=&array_objects[0];
+    //TEntity *object=&array_objects[0];
     BoxFill (0, 23*8, 256, 210, 6, LOGICAL_IMP );
-    PutText(0,200,Itoa(sys_collider_get_tile_up_array(player),"  ",10),8);
-    PutText(50,200,Itoa(sys_collider_get_tile_left_array(player),"  ",10),8);
-    PutText(100,200,Itoa(player->dir,"  ",10),8);
-    PutText(150,200,Itoa(player->jump,"  ",10),8);
-  
+    PutText(0,200,Itoa(sys_collider_get_tile_array(player),"  ",10),8);
+    PutText(50,200,Itoa(tile_end_level1,"  ",10),8);
+    PutText(100,200,Itoa(tile_end_level2,"  ",10),8);
+
     
  
 
-    //Screen(1);
     //printf("%d",buffer);
   
     //unsigned char *buf=getBuffer();
@@ -423,11 +435,15 @@ void pintar_HUD(){
     //Borramos todo el HUD
     BoxFill (0, 23*8, 256, 210, 4, LOGICAL_IMP );
     //Copiamos la casita
-    HMMM(0,256+16,0,188,16,16);
+    HMMM(0,256+16,0,23*8,16,16);
     //Copiamos al personaje gris
-    HMMM(2*8,256+16,40,188,16,16);
+    HMMM(2*8,256+16,5*8,23*8,16,16);
+    //Copiamos el dibujo de puntuación
+    HMMM(4*8,256+(2*8),12*8,24*8,16,8);
     //Copiamos las monedas
-    HMMM(3*8,256,100,188,16,16);
+    HMMM(3*8,256,19*8,23*8,16,16);
+    //Copiamos la flecha de las monedas
+    HMMM(6*8,256+(2*8),21*8,24*8,8,8);
     PutText(20,192,Itoa(actual_world+1," ",10),8);
     PutText(60,192,Itoa(player->lives," ",10),8);
     PutText(120,192,Itoa(player->points," ",10),8);

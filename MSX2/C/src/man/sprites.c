@@ -43,13 +43,16 @@ unsigned char COLOR_DATA_MONEY[];
 
 
   //Tiles
-  #define tile_phone1 40 // telefono
-  #define tile_phone2 36 // telefono
+  //Objects
+  #define tile_phone1 160 // telefono
+  #define tile_phone2 161 // telefono
+  #define tile_end_level1 164 // La puerta cerrada
+  #define tile_end_level2 165 // La puerta cerrada
+  //Solids
   #define tile_stairs1 192 // escalera
   #define tile_stairs2 193 // escalera
   #define tile_floor_tile 224 //suelo >224
-  #define tile_end_level1 76 // y superior
-  #define tile_end_level2 77 // y superior
+
 
 
 
